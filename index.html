@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event RSVP Manager</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0a; color: #f0f0f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { text-align: center; margin-bottom: 30px; padding: 20px 0; border-bottom: 1px solid #1a1a1a; }
+    .header h1 { font-size: 24px; color: #f59e0b; margin-bottom: 5px; }
+    .header p { font-size: 12px; color: #888; }
+    
+    .card { background: #111; border: 1px solid #1a1a1a; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+    .card h2 { font-size: 16px; color: #fff; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #222; }
+    
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-group input, .form-group select, .form-group textarea { 
+      width: 100%; padding: 10px 12px; background: #0a0a0a; border: 1px solid #222; color: #f0f0f0; font-size: 14px; border-radius: 4px; 
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #f59e0b; }
+    
+    .btn { padding: 12px 20px; background: #f59e0b; color: #000; border: none; cursor: pointer; font-weight: 600; border-radius: 4px; font-size: 14px; }
+    .btn:hover { background: #e89800; }
+    .btn-secondary { background: none; border: 1px solid #2a2a2a; color: #888; }
+    .btn-secondary:hover { background: #111; }
+    .btn-small { padding: 8px 12px; font-size: 12px; }
+    
+    .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+    .checkbox-group label { display: flex; align-items: center; gap: 10px; font-size: 14px; text-transform: none; margin-bottom: 0; }
+    .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+    
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #1a1a1a; }
+    .tabs button { background: none; border: none; padding: 12px 20px; color: #888; cursor: pointer; font-size: 14px; border-bottom: 2px solid transparent; }
+    .tabs button.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+    
+    .hidden { display: none; }
+    .alert { padding: 12px 16px; border-radius: 4px; margin-bottom: 16px; font-size: 14px; }
+    .alert-success { background: #1a3a1a; color: #4ade80; }
+    .alert-error { background: #3a1a1a; color: #f87171; }
+    
+    .attendee-item { background: #0a0a0a; padding: 12px; margin-bottom: 10px; border-left: 3px solid #f59e0b; }
+    .attendee-item h4 { font-size: 13px; margin-bottom: 4px; }
+    .attendee-item p { font-size: 12px; color: #888; }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table th { background: #1a1a1a; padding: 10px; text-align: left; text-transform: uppercase; font-weight: 600; }
+    table td { padding: 10px; border-bottom: 1px solid #1a1a1a; }
+    table tr:hover { background: #111; }
+    
+    .qr-container { text-align: center; margin: 20px 0; }
+    .qr-container img { max-width: 200px; }
+    
+    .spinner { display: inline-block; width: 20px; height: 20px; border: 3px solid #1a1a1a; border-top-color: #f59e0b; border-radius: 50%; animation: spin 0.9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: #111; padding: 30px; max-width: 500px; border-radius: 8px; }
+    
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      .card { padding: 16px; }
+      .tabs { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Event RSVP Manager</h1>
+      <p id="eventTitle">Ambedkar Jayanti 2026</p>
+      <div style="margin-top: 15px;">
+        <button class="btn-secondary btn-small" onclick="switchRole('attendee')" id="roleAttendee">Attendee</button>
+        <button class="btn-secondary btn-small" onclick="switchRole('admin')" id="roleAdmin">Admin</button>
+      </div>
+    </div>
+
+    <!-- ATTENDEE VIEW -->
+    <div id="attendeeView" class="hidden">
+      <div class="card">
+        <h2>Register for Event</h2>
+        
+        <!-- Step 1: Find Name -->
+        <div id="step1">
+          <div class="form-group">
+            <label>Search your name or add manually</label>
+            <input type="text" id="nameSearch" placeholder="Type name..." onkeyup="searchNames()">
+          </div>
+          <div id="nameResults" style="max-height: 200px; overflow-y: auto;"></div>
+          
+          <div style="margin: 20px 0; text-align: center; color: #666;">— OR —</div>
+          
+          <div class="form-group">
+            <label>Name (if not in list)</label>
+            <input type="text" id="manualName" placeholder="Full name">
+          </div>
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" id="manualPhone" placeholder="+1 (xxx) xxx-xxxx">
+          </div>
+          
+          <button class="btn" onclick="proceedToAttendance()">Continue</button>
+        </div>
+
+        <!-- Step 2: Attendance -->
+        <div id="step2" class="hidden">
+          <div class="form-group">
+            <label>Will you attend this event?</label>
+            <select id="willAttend" onchange="onAttendanceChange()">
+              <option value="">Select...</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </div>
+          
+          <div id="attendanceYesForm" class="hidden">
+            <div class="form-group">
+              <label>How many adults will attend? (including you)</label>
+              <select id="adultsCount" onchange="updateMealOptions()">
+                <option value="">Select...</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5+</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>How many children will attend?</label>
+              <select id="childrenCount" onchange="onChildrenCountChange()">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5+</option>
+              </select>
+            </div>
+            
+            <div id="childrenAgesForm"></div>
+            
+            <div class="form-group">
+              <label>Meal Preference for Adults</label>
+              <div id="adultsChef"></div>
+            </div>
+            
+            <div id="childrenMealsForm" class="hidden">
+              <div class="form-group">
+                <label>Meal Preference for Children</label>
+                <div id="childrenMeals"></div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Are you a student?</label>
+              <select id="isStudent">
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Would you like to volunteer?</label>
+              <select id="volunteerInterest" onchange="onVolunteerChange()">
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+            
+            <div id="volunteerGroupForm" class="hidden">
+              <div class="form-group">
+                <label>Select volunteer group</label>
+                <div id="volunteerGroups" class="checkbox-group"></div>
+              </div>
+            </div>
+            
+            <button class="btn" onclick="submitRSVP()">Submit RSVP</button>
+            <button class="btn-secondary btn" onclick="goBackStep()">Back</button>
+          </div>
+          
+          <div id="attendanceNoForm" class="hidden">
+            <p style="color: #888; margin-bottom: 20px;">Thank you for letting us know. We hope to see you at a future event!</p>
+            <button class="btn-secondary btn" onclick="goBackStep()">Back</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div id="step3" class="hidden">
+          <div class="alert alert-success">✓ RSVP Submitted Successfully!</div>
+          <div id="rsvpSummary" style="background: #0a0a0a; padding: 16px; margin-bottom: 20px;"></div>
+          
+          <div style="text-align: center;">
+            <p style="color: #888; margin-bottom: 16px; font-size: 12px;">A confirmation has been sent to your phone</p>
+            <div class="qr-container">
+              <img id="confirmationQR" src="" alt="QR Code">
+            </div>
+            <div style="margin-top: 16px;">
+              <a id="whatsappLink" class="btn" target="_blank">Send QR via WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN VIEW -->
+    <div id="adminView" class="hidden">
+      <div class="tabs">
+        <button class="active" onclick="switchAdminTab('events')">Events</button>
+        <button onclick="switchAdminTab('rsvps')">RSVPs</button>
+        <button onclick="switchAdminTab('checkin')">Check-In</button>
+        <button onclick="switchAdminTab('funds')">Collect Funds</button>
+      </div>
+
+      <!-- Events Tab -->
+      <div id="eventsTab" class="card">
+        <h2>Create / Edit Event</h2>
+        <div class="form-group">
+          <label>Event Name</label>
+          <input type="text" id="eventName" value="Ambedkar Jayanti 2026">
+        </div>
+        <div class="form-group">
+          <label>Event Date</label>
+          <input type="date" id="eventDate">
+        </div>
+        <div class="form-group">
+          <label>Event Venue</label>
+          <input type="text" id="eventVenue" placeholder="Location">
+        </div>
+        
+        <h3 style="margin-top: 20px; margin-bottom: 15px; color: #f59e0b;">Customize RSVP Options</h3>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="opt_attendance" checked> Will Attend?</label>
+          <label><input type="checkbox" id="opt_adults" checked> Number of Adults</label>
+          <label><input type="checkbox" id="opt_children" checked> Number of Children</label>
+          <label><input type="checkbox" id="opt_meals" checked> Meal Preferences</label>
+          <label><input type="checkbox" id="opt_student" checked> Student Status</label>
+          <label><input type="checkbox" id="opt_volunteer" checked> Volunteer Interest</label>
+        </div>
+        
+        <h3 style="margin-top: 20px; margin-bottom: 15px; color: #f59e0b;">Volunteer Groups</h3>
+        <div id="volunteerGroupsList" style="margin-bottom: 16px;"></div>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" id="newVolunteerGroup" placeholder="Add new group..." style="flex: 1;">
+          <button class="btn btn-small" onclick="addVolunteerGroup()">Add</button>
+        </div>
+        
+        <button class="btn" onclick="saveEventSettings()" style="margin-top: 20px;">Save Event Settings</button>
+      </div>
+
+      <!-- RSVPs Tab -->
+      <div id="rsvpsTab" class="card hidden">
+        <h2>RSVP List</h2>
+        <div style="margin-bottom: 16px;">
+          <input type="text" id="searchRSVP" placeholder="Search by name..." onkeyup="filterRSVPs()" style="width: 100%; padding: 10px; background: #0a0a0a; border: 1px solid #222; color: #f0f0f0; border-radius: 4px;">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Adults</th>
+              <th>Children</th>
+              <th>Attending</th>
+            </tr>
+          </thead>
+          <tbody id="rsvpsList"></tbody>
+        </table>
+      </div>
+
+      <!-- Check-In Tab -->
+      <div id="checkinTab" class="card hidden">
+        <h2>Event Check-In</h2>
+        <div class="form-group">
+          <label>Scan QR Code or Enter ID</label>
+          <input type="text" id="qrInput" placeholder="Paste QR ID here..." autofocus>
+        </div>
+        <div id="checkinResult"></div>
+      </div>
+
+      <!-- Funds Tab -->
+      <div id="fundsTab" class="card hidden">
+        <h2>Collect Funds</h2>
+        <p style="color: #888; margin-bottom: 20px; font-size: 12px;">Manage who to request funds from</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Student</th>
+              <th>Include</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody id="fundsList"></tbody>
+        </table>
+        
+        <div class="form-group" style="margin-top: 20px;">
+          <label>Custom Message to Send</label>
+          <textarea id="fundMessage" placeholder="Enter your message..." rows="4"></textarea>
+        </div>
+        
+        <button class="btn" onclick="sendFundMessages()">Send Messages via WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== DATA STORAGE =====
+    const DB = {
+      events: [],
+      rsvps: [],
+      members: [],
+      
+      load() {
+        this.events = JSON.parse(localStorage.getItem('events') || '[]');
+        this.rsvps = JSON.parse(localStorage.getItem('rsvps') || '[]');
+        this.members = JSON.parse(localStorage.getItem('members') || '[]');
+      },
+      
+      save() {
+        localStorage.setItem('events', JSON.stringify(this.events));
+        localStorage.setItem('rsvps', JSON.stringify(this.rsvps));
+        localStorage.setItem('members', JSON.stringify(this.members));
+      }
+    };
+
+    // ===== STATE =====
+    let currentRole = 'attendee';
+    let currentStep = 1;
+    let currentRSVP = {};
+    let currentEvent = null;
+
+    // ===== INITIALIZATION =====
+    window.addEventListener('DOMContentLoaded', () => {
+      DB.load();
+      initializeApp();
+      loadSampleData();
+    });
+
+    function initializeApp() {
+      if (!DB.events.length) {
+        DB.events.push({
+          id: 'evt1',
+          name: 'Ambedkar Jayanti 2026',
+          date: '2026-04-14',
+          venue: 'Community Hall, NJ',
+          volunteerGroups: ['Registration', 'Food Setup', 'Decoration', 'Ushering'],
+          options: {
+            attendance: true, adults: true, children: true, meals: true, student: true, volunteer: true
+          }
+        });
+        currentEvent = DB.events[0];
+        DB.save();
+      } else {
+        currentEvent = DB.events[0];
+      }
+      document.getElementById('eventTitle').innerText = currentEvent.name;
+    }
+
+    function loadSampleData() {
+      if (!DB.members.length) {
+        DB.members = [
+          { id: 'M001', name: 'Ahmed Khan', phone: '(551) 268-8625', email: 'ahmed@mail.com' },
+          { id: 'M002', name: 'Priya Singh', phone: '(917) 935-3344', email: 'priya@mail.com' },
+          { id: 'M003', name: 'Nilesh Meshram', phone: '(917) 868-7028', email: 'nilesh@mail.com' },
+          { id: 'M004', name: 'Laxmikant Rode', phone: '(267) 328-8211', email: 'lax@mail.com' },
+          { id: 'M005', name: 'Raul Ramraje', phone: '(732) 895-1594', email: 'raul@mail.com' },
+        ];
+        DB.save();
+      }
+    }
+
+    // ===== ROLE SWITCHING =====
+    function switchRole(role) {
+      currentRole = role;
+      document.getElementById('attendeeView').classList.toggle('hidden', role !== 'attendee');
+      document.getElementById('adminView').classList.toggle('hidden', role !== 'admin');
+      document.getElementById('roleAttendee').classList.toggle('active', role === 'attendee');
+      document.getElementById('roleAdmin').classList.toggle('active', role === 'admin');
+      if (role === 'attendee') resetForm();
+    }
+
+    function switchAdminTab(tab) {
+      document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tab + 'Tab').classList.remove('hidden');
+      document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (tab === 'rsvps') loadRSVPsList();
+      if (tab === 'funds') loadFundsList();
+    }
+
+    // ===== ATTENDEE FUNCTIONS =====
+    function searchNames() {
+      const query = document.getElementById('nameSearch').value.toLowerCase();
+      const results = DB.members.filter(m => m.name.toLowerCase().includes(query));
+      const container = document.getElementById('nameResults');
+      
+      if (query.length < 2) {
+        container.innerHTML = '';
+        return;
+      }
+      
+      container.innerHTML = results.map(m => `
+        <div style="padding: 10px; background: #0a0a0a; border: 1px solid #222; margin-bottom: 8px; cursor: pointer; border-radius: 4px;" onclick="selectName('${m.name}', '${m.phone}', '${m.id}')">
+          <strong>${m.name}</strong><br>
+          <span style="font-size: 12px; color: #888;">${m.phone}</span>
+        </div>
+      `).join('');
+    }
+
+    function selectName(name, phone, id) {
+      currentRSVP = { name, phone, id };
+      document.getElementById('nameSearch').value = name;
+      document.getElementById('manualName').value = name;
+      document.getElementById('manualPhone').value = phone;
+      document.getElementById('nameResults').innerHTML = '';
+    }
+
+    function proceedToAttendance() {
+      const name = document.getElementById('manualName').value.trim();
+      const phone = document.getElementById('manualPhone').value.trim();
+      
+      if (!name || !phone) {
+        alert('Please enter name and phone number');
+        return;
+      }
+      
+      currentRSVP = { name, phone, id: 'RSVP-' + Date.now() };
+      currentStep = 2;
+      showStep(2);
+    }
+
+    function onAttendanceChange() {
+      const val = document.getElementById('willAttend').value;
+      document.getElementById('attendanceYesForm').classList.toggle('hidden', val !== 'yes');
+      document.getElementById('attendanceNoForm').classList.toggle('hidden', val !== 'no');
+    }
+
+    function onChildrenCountChange() {
+      const count = document.getElementById('childrenCount').value;
+      const form = document.getElementById('childrenAgesForm');
+      
+      if (count === '0') {
+        form.innerHTML = '';
+        document.getElementById('childrenMealsForm').classList.add('hidden');
+      } else {
+        let html = '<div class="form-group"><label>Ages of children</label>';
+        for (let i = 0; i < parseInt(count); i++) {
+          html += `<input type="number" placeholder="Child ${i+1} age" min="1" max="17" style="margin-bottom: 8px;">`;
+        }
+        html += '</div>';
+        form.innerHTML = html;
+        document.getElementById('childrenMealsForm').classList.remove('hidden');
+      }
+      updateMealOptions();
+    }
+
+    function updateMealOptions() {
+      const adults = parseInt(document.getElementById('adultsCount').value) || 0;
+      const children = parseInt(document.getElementById('childrenCount').value) || 0;
+      
+      let html = '';
+      for (let i = 0; i < adults; i++) {
+        html += `
+          <div style="padding: 10px; background: #0a0a0a; margin-bottom: 8px; border-radius: 4px;">
+            <label style="display: inline-block; margin-bottom: 6px;">Adult ${i+1}:</label>
+            <select style="width: 100%; padding: 8px; background: #111; border: 1px solid #222; color: #f0f0f0; border-radius: 4px;">
+              <option>Veg</option>
+              <option>Non-Veg</option>
+              <option>Jain</option>
+              <option>No Meal</option>
+            </select>
+          </div>
+        `;
+      }
+      document.getElementById('adultsChef').innerHTML = html;
+      
+      if (children > 0) {
+        html = '';
+        for (let i = 0; i < children; i++) {
+          html += `
+            <div style="padding: 10px; background: #0a0a0a; margin-bottom: 8px; border-radius: 4px;">
+              <label style="display: inline-block; margin-bottom: 6px;">Child ${i+1}:</label>
+              <select style="width: 100%; padding: 8px; background: #111; border: 1px solid #222; color: #f0f0f0; border-radius: 4px;">
+                <option>Veg</option>
+                <option>Non-Veg</option>
+                <option>Jain</option>
+                <option>No Meal</option>
+              </select>
+            </div>
+          `;
+        }
+        document.getElementById('childrenMeals').innerHTML = html;
+      }
+    }
+
+    function onVolunteerChange() {
+      const val = document.getElementById('volunteerInterest').value;
+      document.getElementById('volunteerGroupForm').classList.toggle('hidden', val !== 'yes');
+      if (val === 'yes') {
+        updateVolunteerGroups();
+      }
+    }
+
+    function updateVolunteerGroups() {
+      const html = currentEvent.volunteerGroups.map(g => `
+        <label><input type="checkbox" name="volGroup" value="${g}"> ${g}</label>
+      `).join('');
+      document.getElementById('volunteerGroups').innerHTML = html;
+    }
+
+    function submitRSVP() {
+      const rsvp = {
+        id: currentRSVP.id,
+        name: currentRSVP.name,
+        phone: currentRSVP.phone,
+        willAttend: document.getElementById('willAttend').value,
+        adults: parseInt(document.getElementById('adultsCount').value) || 0,
+        children: parseInt(document.getElementById('childrenCount').value) || 0,
+        isStudent: document.getElementById('isStudent').value,
+        volunteer: document.getElementById('volunteerInterest').value,
+        volunteerGroups: Array.from(document.querySelectorAll('input[name="volGroup"]:checked')).map(x => x.value),
+        submittedAt: new Date().toISOString()
+      };
+      
+      DB.rsvps.push(rsvp);
+      DB.save();
+      
+      currentRSVP = rsvp;
+      showStep(3);
+      displayConfirmation(rsvp);
+    }
+
+    function displayConfirmation(rsvp) {
+      const qrId = rsvp.id;
+      const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrId)}`;
+      document.getElementById('confirmationQR').src = qrImg;
+      
+      let summary = `<strong>${rsvp.name}</strong><br>`;
+      summary += `Phone: ${rsvp.phone}<br>`;
+      summary += `Attending: ${rsvp.willAttend === 'yes' ? 'Yes' : 'No'}<br>`;
+      if (rsvp.willAttend === 'yes') {
+        summary += `Adults: ${rsvp.adults}, Children: ${rsvp.children}<br>`;
+        if (rsvp.volunteer === 'yes') {
+          summary += `Volunteering for: ${rsvp.volunteerGroups.join(', ')}<br>`;
+        }
+      }
+      document.getElementById('rsvpSummary').innerHTML = summary;
+      
+      const whatsappMsg = `Hello ${rsvp.name}, thank you for registering for ${currentEvent.name}! Your confirmation ID is: ${qrId}`;
+      const whatsappUrl = `https://wa.me/${rsvp.phone.replace(/\D/g, '')}?text=${encodeURIComponent(whatsappMsg)}`;
+      document.getElementById('whatsappLink').href = whatsappUrl;
+    }
+
+    function resetForm() {
+      currentStep = 1;
+      currentRSVP = {};
+      document.getElementById('nameSearch').value = '';
+      document.getElementById('manualName').value = '';
+      document.getElementById('manualPhone').value = '';
+      showStep(1);
+    }
+
+    function showStep(step) {
+      document.getElementById('step1').classList.toggle('hidden', step !== 1);
+      document.getElementById('step2').classList.toggle('hidden', step !== 2);
+      document.getElementById('step3').classList.toggle('hidden', step !== 3);
+    }
+
+    function goBackStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    }
+
+    // ===== ADMIN FUNCTIONS =====
+    function addVolunteerGroup() {
+      const name = document.getElementById('newVolunteerGroup').value.trim();
+      if (!name) return;
+      
+      if (!currentEvent.volunteerGroups) currentEvent.volunteerGroups = [];
+      currentEvent.volunteerGroups.push(name);
+      document.getElementById('newVolunteerGroup').value = '';
+      updateVolunteerGroupsList();
+      DB.save();
+    }
+
+    function updateVolunteerGroupsList() {
+      const html = (currentEvent.volunteerGroups || []).map((g, i) => `
+        <div style="padding: 10px; background: #0a0a0a; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-radius: 4px;">
+          <span>${g}</span>
+          <button class="btn-secondary btn-small" onclick="removeVolunteerGroup(${i})">Remove</button>
+        </div>
+      `).join('');
+      document.getElementById('volunteerGroupsList').innerHTML = html;
+    }
+
+    function removeVolunteerGroup(idx) {
+      currentEvent.volunteerGroups.splice(idx, 1);
+      updateVolunteerGroupsList();
+      DB.save();
+    }
+
+    function saveEventSettings() {
+      currentEvent.name = document.getElementById('eventName').value;
+      currentEvent.date = document.getElementById('eventDate').value;
+      currentEvent.venue = document.getElementById('eventVenue').value;
+      currentEvent.options = {
+        attendance: document.getElementById('opt_attendance').checked,
+        adults: document.getElementById('opt_adults').checked,
+        children: document.getElementById('opt_children').checked,
+        meals: document.getElementById('opt_meals').checked,
+        student: document.getElementById('opt_student').checked,
+        volunteer: document.getElementById('opt_volunteer').checked,
+      };
+      DB.save();
+      alert('Event settings saved!');
+    }
+
+    function loadRSVPsList() {
+      const html = DB.rsvps.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.phone}</td>
+          <td>${r.adults || 0}</td>
+          <td>${r.children || 0}</td>
+          <td>${r.willAttend === 'yes' ? '✓' : '✗'}</td>
+        </tr>
+      `).join('');
+      document.getElementById('rsvpsList').innerHTML = html;
+    }
+
+    function filterRSVPs() {
+      const query = document.getElementById('searchRSVP').value.toLowerCase();
+      const filtered = DB.rsvps.filter(r => r.name.toLowerCase().includes(query));
+      const html = filtered.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.phone}</td>
+          <td>${r.adults || 0}</td>
+          <td>${r.children || 0}</td>
+          <td>${r.willAttend === 'yes' ? '✓' : '✗'}</td>
+        </tr>
+      `).join('');
+      document.getElementById('rsvpsList').innerHTML = html;
+    }
+
+    function loadFundsList() {
+      const html = DB.rsvps.map((r, i) => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.isStudent === 'yes' ? 'Yes' : 'No'}</td>
+          <td><input type="checkbox" id="fund_${i}" ${r.isStudent !== 'yes' ? 'checked' : ''} data-phone="${r.phone}"></td>
+          <td><input type="number" placeholder="Amount" style="width: 80px; padding: 6px; background: #0a0a0a; border: 1px solid #222;"></td>
+        </tr>
+      `).join('');
+      document.getElementById('fundsList').innerHTML = html;
+    }
+
+    function sendFundMessages() {
+      const msg = document.getElementById('fundMessage').value;
+      if (!msg) {
+        alert('Please enter a message');
+        return;
+      }
+      
+      const checks = document.querySelectorAll('input[type="checkbox"][id^="fund_"]:checked');
+      checks.forEach(check => {
+        const phone = check.getAttribute('data-phone').replace(/\D/g, '');
+        const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+        window.open(whatsappUrl, '_blank');
+      });
+    }
+  </script>
+</body>
+</html>

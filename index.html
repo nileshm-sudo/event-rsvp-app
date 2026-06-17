@@ -939,12 +939,25 @@
       const phone = document.getElementById('manualPhone').value.trim();
       const code = document.getElementById('countryCode').value;
 
-      if (!name || !phone) {
-        alert('Please enter name and phone');
+      console.log('Name:', name, 'Phone:', phone, 'Code:', code);
+
+      if (!name) {
+        alert('Please enter your name');
         return;
       }
 
-      currentRSVP = { name, phone: code + ' ' + phone, id: 'RSVP-' + Date.now() };
+      if (!phone || phone.length < 3) {
+        alert('Please enter a valid phone number');
+        return;
+      }
+
+      currentRSVP = { 
+        name: name, 
+        phone: code + ' ' + phone, 
+        id: 'RSVP-' + Date.now() 
+      };
+      
+      console.log('RSVP Created:', currentRSVP);
       goToStep(2);
     }
 
@@ -1089,22 +1102,40 @@
 
     function goToStep(step) {
       currentStep = step;
-      document.querySelectorAll('[id^="step"][id$$="-9"]').forEach(el => el.classList.add('hidden'));
-      document.getElementById('step' + step).classList.remove('hidden');
+      console.log('Going to step:', step);
+      
+      // Hide all steps
+      document.querySelectorAll('[id^="step"]').forEach(el => {
+        if (el.id.match(/^step\d+$/)) {
+          el.classList.add('hidden');
+        }
+      });
+      
+      // Show current step
+      const stepEl = document.getElementById('step' + step);
+      if (stepEl) {
+        stepEl.classList.remove('hidden');
+        console.log('Showing step element:', 'step' + step);
+      } else {
+        console.error('Step element not found:', 'step' + step);
+      }
 
       // Update step indicator
       for (let i = 1; i <= 4; i++) {
         const ind = document.getElementById('stepInd' + i);
-        if (i < step) ind.classList.add('completed');
-        else if (i === step) ind.classList.add('active');
-        else {
+        if (ind) {
           ind.classList.remove('active', 'completed');
+          if (i < step) ind.classList.add('completed');
+          else if (i === step) ind.classList.add('active');
         }
       }
 
       // Update title
       const titles = ['Find Your Name', 'Will You Attend?', 'Meal Preferences', 'Confirmation'];
-      document.getElementById('stepTitle').innerText = titles[step - 1];
+      const titleEl = document.getElementById('stepTitle');
+      if (titleEl) {
+        titleEl.innerText = titles[step - 1];
+      }
 
       window.scrollTo(0, 0);
     }

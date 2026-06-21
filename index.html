@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Management & RSVP System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #f8f9fa; 
+      color: #1a1a1a; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .header { 
+      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+      color: white;
+      text-align: center; 
+      margin: -20px -20px 30px -20px;
+      padding: 40px 20px;
+      border-radius: 0 0 12px 12px;
+    }
+    .header h1 { font-size: 28px; margin-bottom: 10px; font-weight: 700; }
+    
+    .role-switch {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    
+    .card { 
+      background: white; 
+      border: 1px solid #e0e0e0;
+      padding: 25px; 
+      margin-bottom: 20px; 
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .card h2 { 
+      font-size: 18px; 
+      color: #0066cc; 
+      margin-bottom: 20px; 
+      padding-bottom: 12px; 
+      border-bottom: 2px solid #e8f0ff;
+    }
+    .card h3 { 
+      font-size: 15px; 
+      color: #333;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    
+    .form-group { margin-bottom: 16px; }
+    .form-group label { 
+      display: block; 
+      font-size: 13px; 
+      color: #333;
+      margin-bottom: 8px; 
+      font-weight: 600;
+    }
+    .form-group input, .form-group select, .form-group textarea { 
+      width: 100%; 
+      padding: 11px 14px; 
+      background: #f8f9fa; 
+      border: 1.5px solid #d0d8e0; 
+      color: #1a1a1a; 
+      font-size: 14px; 
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { 
+      outline: none; 
+      border-color: #0066cc;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+    }
+    
+    .btn { 
+      padding: 12px 20px; 
+      background: #0066cc; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: 600; 
+      border-radius: 6px; 
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .btn:hover { 
+      background: #0052a3;
+      transform: translateY(-1px);
+    }
+    .btn-secondary { 
+      background: white; 
+      border: 1.5px solid #0066cc; 
+      color: #0066cc;
+    }
+    .btn-secondary:hover { background: #e8f0ff; }
+    .btn-small { padding: 8px 12px; font-size: 12px; }
+    .btn-danger { background: #f44336; }
+    .btn-success { background: #4caf50; }
+    
+    .checkbox-group { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 12px; 
+    }
+    .checkbox-group label { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      font-size: 14px; 
+      font-weight: 400;
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+    .checkbox-group input[type="checkbox"] { 
+      width: 18px; 
+      height: 18px; 
+      cursor: pointer;
+      accent-color: #0066cc;
+    }
+    
+    .tabs { 
+      display: flex; 
+      gap: 5px; 
+      margin-bottom: 20px; 
+      border-bottom: 2px solid #e0e0e0;
+      overflow-x: auto;
+    }
+    .tabs button { 
+      background: none; 
+      border: none; 
+      padding: 12px 16px; 
+      color: #666; 
+      cursor: pointer; 
+      font-size: 13px; 
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .tabs button.active { 
+      color: #0066cc; 
+      border-bottom-color: #0066cc;
+    }
+    
+    .hidden { display: none; }
+    
+    .event-card {
+      background: #e8f0ff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border-left: 4px solid #0066cc;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .event-card:hover {
+      background: #d1e0ff;
+      transform: translateX(4px);
+    }
+    .event-card h4 { color: #0066cc; margin-bottom: 4px; }
+    .event-card p { font-size: 12px; color: #666; }
+    
+    .setting-item {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .alert { 
+      padding: 14px 16px; 
+      border-radius: 6px; 
+      margin-bottom: 16px; 
+      font-size: 14px;
+      border-left: 4px solid;
+    }
+    .alert-success { 
+      background: #e8f5e9; 
+      color: #2e7d32;
+      border-left-color: #4caf50;
+    }
+    .alert-warning {
+      background: #fff3e0;
+      color: #e65100;
+      border-left-color: #ff9800;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #4caf50;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    .table-responsive {
+      overflow-x: auto;
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      font-size: 13px;
+    }
+    table th { 
+      background: #e8f0ff; 
+      padding: 12px; 
+      text-align: left; 
+      font-weight: 600;
+      color: #0066cc;
+    }
+    table td { 
+      padding: 12px; 
+      border-bottom: 1px solid #e0e0e0;
+    }
+    table tr:hover { background: #f8f9fa; }
+    
+    .step-indicator {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      justify-content: center;
+    }
+    
+    .step {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      background: #e0e0e0;
+      color: #666;
+    }
+    
+    .step.active {
+      background: #0066cc;
+      color: white;
+    }
+    
+    .qr-container { 
+      text-align: center; 
+      margin: 25px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .qr-container img { max-width: 200px; border: 2px solid #0066cc; border-radius: 6px; }
+    
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      .card { padding: 16px; }
+      .tabs { gap: 0; }
+      .tabs button { padding: 10px 12px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Event Management & RSVP System</h1>
+      <p>Complete event management, RSVP, and check-in solution</p>
+      <div class="role-switch">
+        <button class="btn btn-small" onclick="switchRole('attendee')" id="roleAttendee">📝 Attendee</button>
+        <button class="btn-secondary btn btn-small" onclick="switchRole('admin')" id="roleAdmin">⚙️ Admin</button>
+      </div>
+    </div>
+
+    <!-- ===== ATTENDEE VIEW ===== -->
+    <div id="attendeeView">
+      <!-- Step 1: Select Event -->
+      <div id="eventSelectionStep" class="card">
+        <h2>Select Event</h2>
+        <p style="color: #666; margin-bottom: 20px; font-size: 13px;">Choose an event to RSVP for:</p>
+        <div id="eventList"></div>
+      </div>
+
+      <!-- Step 2-4: RSVP Form -->
+      <div id="rsvpFormStep" class="card hidden">
+        <div class="step-indicator">
+          <div class="step active" id="stepInd1">1</div>
+          <div class="step" id="stepInd2">2</div>
+          <div class="step" id="stepInd3">3</div>
+        </div>
+
+        <h2 id="stepTitle">Your Information</h2>
+
+        <!-- Step 1: Name & Phone -->
+        <div id="rsvpStep1">
+          <div class="form-group">
+            <label>Search your name or add manually</label>
+            <input type="text" id="nameSearch" placeholder="Type name or last 4 digits..." onkeyup="searchAttendees()">
+          </div>
+          <div id="searchResults" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;"></div>
+
+          <div style="margin: 20px 0; text-align: center; color: #999; font-size: 12px;">— OR —</div>
+
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="manualName" placeholder="Full name">
+          </div>
+          
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 10px;">
+              <select id="countryCode">
+                <option value="+1">🇺🇸 +1</option>
+                <option value="+91">🇮🇳 +91</option>
+                <option value="+44">🇬🇧 +44</option>
+                <option value="+61">🇦🇺 +61</option>
+              </select>
+              <input type="tel" id="manualPhone" placeholder="10 digit">
+            </div>
+          </div>
+
+          <button class="btn" onclick="attendeeGoToStep(2)">Continue</button>
+        </div>
+
+        <!-- Step 2: Event Questions -->
+        <div id="rsvpStep2" class="hidden">
+          <div id="dynamicFields"></div>
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" onclick="attendeeGoToStep(3)">Review & Submit</button>
+            <button class="btn btn-secondary" onclick="attendeeGoToStep(1)">Back</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div id="rsvpStep3" class="hidden">
+          <div class="alert alert-success">✓ RSVP Submitted Successfully!</div>
+          <div id="confirmSummary" style="background: #e8f5e9; padding: 16px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #4caf50;"></div>
+          
+          <div class="qr-container">
+            <p style="color: #666; margin-bottom: 12px; font-size: 12px;">Your QR Code for Check-in:</p>
+            <img id="confirmQR" src="" alt="QR Code">
+          </div>
+
+          <div style="background: #e3f2fd; padding: 14px; border-radius: 6px; margin-bottom: 16px; font-size: 12px; color: #0066cc; line-height: 1.6;">
+            <strong>📋 How to share your QR code:</strong><br><br>
+            <strong>Option 1: Download & Share</strong><br>
+            • Download QR image<br>
+            • Send via WhatsApp, Text, or Email<br><br>
+            
+            <strong>Option 2: Screenshot</strong><br>
+            • Take screenshot of QR code<br>
+            • Share screenshot via any app<br><br>
+            
+            <strong>Option 3: Print</strong><br>
+            • Download QR image<br>
+            • Print for physical copy<br><br>
+            
+            Save or share with event organizers! 🎉
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+            <button class="btn" onclick="downloadQR()" style="flex: 1; min-width: 140px;">⬇ Download QR</button>
+            <button class="btn btn-secondary" onclick="backToEventSelect()" style="flex: 1; min-width: 140px;">← Back to Events</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADMIN VIEW ===== -->
+    <div id="adminView" class="hidden">
+      <div class="tabs">
+        <button class="active" onclick="switchAdminTab('createEvent')">Create Event</button>
+        <button onclick="switchAdminTab('eventsList')">Events List</button>
+        <button onclick="switchAdminTab('members')">📋 Members</button>
+        <button onclick="switchAdminTab('checkin')">✓ Check-In</button>
+        <button onclick="switchAdminTab('rsvpList')">RSVPs</button>
+      </div>
+
+      <!-- Create/Edit Event -->
+      <div id="createEventTab" class="card">
+        <h2 id="eventFormTitle">Create New Event</h2>
+
+        <div class="form-group">
+          <label>Event Name</label>
+          <input type="text" id="adminEventName" placeholder="e.g., Ambedkar Jayanti 2026">
+        </div>
+
+        <div class="form-group">
+          <label>Event Date</label>
+          <input type="date" id="adminEventDate">
+        </div>
+
+        <div class="form-group">
+          <label>Event Venue</label>
+          <input type="text" id="adminEventVenue" placeholder="Location">
+        </div>
+
+        <h3>Enable RSVP</h3>
+        <div class="setting-item">
+          <label>Accept RSVPs for this event</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="rsvpEnabled" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <h3>Attendee Information</h3>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="field_name" checked> Full Name (always required)</label>
+          <label><input type="checkbox" id="field_phone" checked> Phone Number</label>
+          <label><input type="checkbox" id="field_student" checked> Student Status</label>
+        </div>
+
+        <h3>Volunteer Activities</h3>
+        <div id="volunteerActivitiesList" style="margin-bottom: 16px;"></div>
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+          <input type="text" id="newVolunteerActivity" placeholder="e.g., Food Setup" style="flex: 1;">
+          <button class="btn btn-small" onclick="addVolunteerActivity()">+ Add</button>
+        </div>
+        <div id="questionsContainer"></div>
+        
+        <div style="margin-top: 16px; padding: 12px; background: #f0f7ff; border-radius: 6px;">
+          <p style="font-size: 12px; color: #0066cc; margin-bottom: 10px;">Add a Custom Question:</p>
+          <div class="form-group">
+            <input type="text" id="newQuestionText" placeholder="Question (e.g., How many adults?)" style="margin-bottom: 8px;">
+            <select id="newQuestionType" style="margin-bottom: 8px;">
+              <option value="text">Text Input</option>
+              <option value="number">Number</option>
+              <option value="checkbox">Checkboxes</option>
+              <option value="radio">Multiple Choice</option>
+              <option value="dropdown">Dropdown</option>
+            </select>
+            <input type="text" id="newQuestionOptions" placeholder="Options (comma-separated, for checkbox/radio/dropdown)" style="margin-bottom: 8px;">
+            <button class="btn btn-small" onclick="addCustomQuestion()">+ Add Question</button>
+          </div>
+        </div>
+
+        <button class="btn btn-success" onclick="saveEvent()" style="margin-top: 20px; width: 100%;">💾 Save Event</button>
+      </div>
+
+      <!-- Events List -->
+      <div id="eventsListTab" class="card hidden">
+        <h2>Manage Events</h2>
+        <div id="adminEventsList"></div>
+      </div>
+
+      <!-- Members Database -->
+      <div id="membersTab" class="card hidden">
+        <h2>Master Member Database</h2>
+        
+        <h3>Add New Member</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+          <input type="text" id="newMemberId" placeholder="ID (auto if empty)" style="padding: 10px; border: 1px solid #d0d8e0; border-radius: 6px;">
+          <input type="text" id="newMemberName" placeholder="Full Name" style="padding: 10px; border: 1px solid #d0d8e0; border-radius: 6px;">
+          <input type="tel" id="newMemberPhone" placeholder="Phone" style="padding: 10px; border: 1px solid #d0d8e0; border-radius: 6px;">
+          <input type="email" id="newMemberEmail" placeholder="Email" style="padding: 10px; border: 1px solid #d0d8e0; border-radius: 6px;">
+        </div>
+        <button class="btn" onclick="addNewMember()" style="margin-bottom: 20px;">➕ Add Member</button>
+
+        <h3>Member List</h3>
+        <div class="form-group">
+          <input type="text" id="searchMembers" placeholder="Search by name or phone..." onkeyup="filterMembers()" style="margin-bottom: 0;">
+        </div>
+        
+        <div class="table-responsive" style="margin-top: 15px;">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="membersList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Check-In -->
+      <div id="checkinTab" class="card hidden">
+        <h2>Event Check-In</h2>
+        
+        <div class="form-group">
+          <label>Select Event</label>
+          <select id="checkinEventSelect" onchange="loadCheckInData()">
+            <option value="">Choose event...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Scan QR Code or Enter RSVP ID</label>
+          <input type="text" id="qrScanInput" placeholder="Paste QR ID here and press Enter..." autofocus onkeypress="if(event.key==='Enter') searchRsvpForCheckin();">
+        </div>
+
+        <div id="checkinResult"></div>
+
+        <h3 style="margin-top: 30px;">Check-In Status</h3>
+        <div class="form-group">
+          <input type="text" id="filterCheckin" placeholder="Search by name..." onkeyup="filterCheckinList()">
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Adults</th>
+                <th>Children</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="checkinList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RSVPs List -->
+      <div id="rsvpListTab" class="card hidden">
+        <h2>RSVP Submissions</h2>
+        <div class="form-group">
+          <input type="text" id="filterRsvpEvent" placeholder="Filter by event..." onchange="loadRsvpList()">
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Event</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="rsvpListBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== DATA STRUCTURE =====
+    const DB = {
+      events: [],
+      rsvps: [],
+      members: [],
+      
+      load() {
+        this.events = JSON.parse(localStorage.getItem('events') || '[]');
+        this.rsvps = JSON.parse(localStorage.getItem('rsvps') || '[]');
+        this.members = JSON.parse(localStorage.getItem('members') || '[]');
+      },
+      
+      save() {
+        localStorage.setItem('events', JSON.stringify(this.events));
+        localStorage.setItem('rsvps', JSON.stringify(this.rsvps));
+        localStorage.setItem('members', JSON.stringify(this.members));
+      }
+    };
+
+    // Sample Members
+    const SAMPLE_MEMBERS = [
+      {id:'M001',name:'Ahmed Khan',phone:'(551) 268-8625',email:'ahmed@mail.com'},
+      {id:'M002',name:'Priya Singh',phone:'(917) 935-3344',email:'priya@mail.com'},
+      {id:'M003',name:'Nilesh Meshram',phone:'(917) 868-7028',email:'nilesh@mail.com'},
+      {id:'M004',name:'Laxmikant Rode',phone:'(267) 328-8211',email:'lax@mail.com'},
+      {id:'M005',name:'Rahul Ramraje',phone:'(732) 895-1594',email:'raul@mail.com'},
+    ];
+
+    // ===== STATE =====
+    let currentRole = 'attendee';
+    let selectedEvent = null;
+    let currentRsvp = {};
+    let editingEventId = null;
+
+    // ===== INIT =====
+    window.addEventListener('DOMContentLoaded', () => {
+      DB.load();
+      if (!DB.members.length) DB.members = SAMPLE_MEMBERS;
+      if (!DB.events.length) createSampleEvent();
+      DB.save();
+      loadAttendeeView();
+    });
+
+    function createSampleEvent() {
+      DB.events.push({
+        id: 'EVT-' + Date.now(),
+        name: 'Ambedkar Jayanti 2026',
+        date: '2026-04-14',
+        venue: 'Community Hall, NJ',
+        rsvpEnabled: true,
+        fields: {name: true, phone: true, student: true},
+        customQuestions: [
+          {id: 'q1', text: 'Will you attend?', type: 'radio', options: ['Yes', 'No'], required: true},
+          {id: 'q2', text: 'How many adults?', type: 'number', options: [], required: false},
+          {id: 'q3', text: 'How many children?', type: 'number', options: [], required: false},
+          {id: 'q4', text: 'Volunteer activities', type: 'checkbox', options: ['Setup', 'Food', 'Cleanup'], required: false},
+        ],
+        volunteerActivities: ['Setup', 'Food', 'Cleanup']
+      });
+    }
+
+    // ===== ROLE SWITCHING =====
+    function switchRole(role) {
+      currentRole = role;
+      document.getElementById('attendeeView').classList.toggle('hidden', role !== 'attendee');
+      document.getElementById('adminView').classList.toggle('hidden', role !== 'admin');
+      document.getElementById('roleAttendee').classList.toggle('btn-secondary', role !== 'attendee');
+      document.getElementById('roleAdmin').classList.toggle('btn-secondary', role !== 'admin');
+      
+      if (role === 'attendee') loadAttendeeView();
+      if (role === 'admin') switchAdminTab('createEvent');
+    }
+
+    // ===== ATTENDEE FUNCTIONS =====
+    function loadAttendeeView() {
+      const enabledEvents = DB.events.filter(e => e.rsvpEnabled);
+      const html = enabledEvents.map(e => `
+        <div class="event-card" onclick="selectEvent('${e.id}')">
+          <h4>${e.name}</h4>
+          <p>📅 ${e.date} | 📍 ${e.venue}</p>
+        </div>
+      `).join('');
+      
+      document.getElementById('eventList').innerHTML = html || '<p style="color: #999;">No events available</p>';
+      document.getElementById('eventSelectionStep').classList.remove('hidden');
+      document.getElementById('rsvpFormStep').classList.add('hidden');
+    }
+
+    function selectEvent(eventId) {
+      selectedEvent = DB.events.find(e => e.id === eventId);
+      currentRsvp = {};
+      document.getElementById('eventSelectionStep').classList.add('hidden');
+      document.getElementById('rsvpFormStep').classList.remove('hidden');
+      renderDynamicFields();
+      attendeeGoToStep(1);
+    }
+
+    function searchAttendees() {
+      const query = document.getElementById('nameSearch').value.trim().toLowerCase();
+      const container = document.getElementById('searchResults');
+      
+      if (query.length < 2) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const results = DB.members.filter(m => 
+        m.name.toLowerCase().includes(query) ||
+        m.phone.replace(/\D/g, '').endsWith(query.slice(-4))
+      );
+
+      container.innerHTML = results.map(m => `
+        <div style="background: #e8f0ff; padding: 10px; border-radius: 4px; margin-bottom: 8px; cursor: pointer;" onclick="selectMember('${m.name}', '${m.phone}')">
+          <strong>${m.name}</strong><br><span style="font-size: 12px; color: #666;">${m.phone}</span>
+        </div>
+      `).join('');
+    }
+
+    function selectMember(name, phone) {
+      document.getElementById('manualName').value = name;
+      document.getElementById('manualPhone').value = phone.replace(/\D/g, '');
+      document.getElementById('searchResults').innerHTML = '';
+      document.getElementById('nameSearch').value = '';
+    }
+
+    function renderDynamicFields() {
+      const event = selectedEvent;
+      let html = '';
+
+      // Will you attend
+      const attendQuestion = event.customQuestions.find(q => q.text === 'Will you attend?');
+      if (attendQuestion) {
+        html += `
+          <div class="form-group">
+            <label>${attendQuestion.text}</label>
+            <div class="checkbox-group">
+              <label><input type="radio" name="attend" value="yes" onchange="onAttendanceChange()"> Yes</label>
+              <label><input type="radio" name="attend" value="no" onchange="onAttendanceChange()"> No</label>
+            </div>
+          </div>
+        `;
+      }
+
+      // Adults
+      const adultsQuestion = event.customQuestions.find(q => q.text === 'How many adults?');
+      if (adultsQuestion) {
+        html += `
+          <div class="form-group" id="adultsGroup" style="display: none;">
+            <label>${adultsQuestion.text}</label>
+            <select id="adults">
+              <option value="">Select</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5+</option>
+            </select>
+          </div>
+        `;
+      }
+
+      // Children
+      const childrenQuestion = event.customQuestions.find(q => q.text === 'How many children?');
+      if (childrenQuestion) {
+        html += `
+          <div class="form-group" id="childrenGroup" style="display: none;">
+            <label>${childrenQuestion.text}</label>
+            <select id="children">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5+</option>
+            </select>
+          </div>
+        `;
+      }
+
+      // Student status
+      if (event.fields.student) {
+        html += `
+          <div class="form-group">
+            <label>Are you a student?</label>
+            <select id="student">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </div>
+        `;
+      }
+
+      // Volunteer
+      const volunteerQuestion = event.customQuestions.find(q => q.text === 'Volunteer activities');
+      if (volunteerQuestion) {
+        html += `
+          <div class="form-group" id="volunteerGroup" style="display: none;">
+            <label>${volunteerQuestion.text}</label>
+            <div class="checkbox-group">
+              ${volunteerQuestion.options.map(opt => `
+                <label><input type="checkbox" name="volunteer" value="${opt}"> ${opt}</label>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      document.getElementById('dynamicFields').innerHTML = html;
+    }
+
+    function onAttendanceChange() {
+      const attend = document.querySelector('input[name="attend"]:checked')?.value;
+      document.getElementById('adultsGroup').style.display = attend === 'yes' ? 'block' : 'none';
+      document.getElementById('childrenGroup').style.display = attend === 'yes' ? 'block' : 'none';
+      document.getElementById('volunteerGroup').style.display = attend === 'yes' ? 'block' : 'none';
+    }
+
+    function attendeeGoToStep(step) {
+      document.getElementById('rsvpStep1').classList.toggle('hidden', step !== 1);
+      document.getElementById('rsvpStep2').classList.toggle('hidden', step !== 2);
+      document.getElementById('rsvpStep3').classList.toggle('hidden', step !== 3);
+
+      // Update indicators
+      document.getElementById('stepInd1').classList.toggle('active', step === 1);
+      document.getElementById('stepInd2').classList.toggle('active', step === 2);
+      document.getElementById('stepInd3').classList.toggle('active', step === 3);
+
+      if (step === 2) {
+        // Save step 1 data
+        const name = document.getElementById('manualName').value.trim();
+        const phone = document.getElementById('manualPhone').value.trim();
+        const code = document.getElementById('countryCode').value;
+
+        if (!name || !phone) {
+          alert('Please enter name and phone');
+          return;
+        }
+
+        currentRsvp = {
+          id: 'RSVP-' + Date.now(),
+          name: name,
+          phone: code + ' ' + phone,
+          eventId: selectedEvent.id,
+          answers: {}
+        };
+      } else if (step === 3) {
+        // Save step 2 data
+        currentRsvp.attend = document.querySelector('input[name="attend"]:checked')?.value;
+        currentRsvp.adults = document.getElementById('adults')?.value;
+        currentRsvp.children = document.getElementById('children')?.value;
+        currentRsvp.student = document.getElementById('student')?.value;
+        currentRsvp.volunteer = Array.from(document.querySelectorAll('input[name="volunteer"]:checked')).map(x => x.value);
+
+        submitRsvp();
+      }
+
+      window.scrollTo(0, 0);
+    }
+
+    function submitRsvp() {
+      DB.rsvps.push(currentRsvp);
+      DB.save();
+
+      // Show confirmation
+      const qrId = currentRsvp.id;
+      const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrId)}&color=0066cc&bgcolor=ffffff`;
+      document.getElementById('confirmQR').src = qrImg;
+      document.getElementById('confirmQR').dataset.qrUrl = qrImg;
+      document.getElementById('confirmQR').dataset.qrId = qrId;
+
+      let summary = `<strong>${currentRsvp.name}</strong><br>Phone: ${currentRsvp.phone}<br>Event: ${selectedEvent.name}<br>Attending: ${currentRsvp.attend === 'yes' ? 'Yes' : 'No'}`;
+      document.getElementById('confirmSummary').innerHTML = summary;
+
+      window.currentRsvpData = currentRsvp;
+    }
+
+    function downloadQR() {
+      const qrUrl = document.getElementById('confirmQR').dataset.qrUrl;
+      const link = document.createElement('a');
+      link.href = qrUrl.replace('size=300x300', 'size=500x500');
+      link.download = `RSVP-${currentRsvp.name.replace(/\s+/g, '-')}-QR.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function backToEventSelect() {
+      loadAttendeeView();
+    }
+
+    // ===== ADMIN FUNCTIONS =====
+    function switchAdminTab(tab) {
+      document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tab + 'Tab').classList.remove('hidden');
+      document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      if (tab === 'eventsList') loadEventsList();
+      if (tab === 'members') loadMembersList();
+      if (tab === 'checkin') {
+        loadCheckInEvents();
+        document.getElementById('qrScanInput').focus();
+      }
+      if (tab === 'rsvpList') loadRsvpList();
+    }
+
+    function addVolunteerActivity() {
+      const input = document.getElementById('newVolunteerActivity');
+      const activity = input.value.trim();
+
+      if (!activity) {
+        alert('Please enter an activity name');
+        return;
+      }
+
+      const div = document.createElement('div');
+      div.className = 'setting-item';
+      div.innerHTML = `
+        <span>${activity}</span>
+        <button class="btn btn-small btn-danger" onclick="this.parentElement.remove()">Remove</button>
+      `;
+
+      document.getElementById('volunteerActivitiesList').appendChild(div);
+      input.value = '';
+    }
+
+    function getVolunteerActivities() {
+      const activities = [];
+      document.querySelectorAll('#volunteerActivitiesList .setting-item').forEach(el => {
+        activities.push(el.querySelector('span').innerText);
+      });
+      return activities;
+    }
+      const text = document.getElementById('newQuestionText').value.trim();
+      const type = document.getElementById('newQuestionType').value;
+      const options = document.getElementById('newQuestionOptions').value.split(',').map(o => o.trim()).filter(o => o);
+
+      if (!text) {
+        alert('Please enter question text');
+        return;
+      }
+
+      const q = {
+        id: 'q-' + Date.now(),
+        text: text,
+        type: type,
+        options: options,
+        required: false
+      };
+
+      renderQuestion(q);
+      document.getElementById('newQuestionText').value = '';
+      document.getElementById('newQuestionOptions').value = '';
+    }
+
+    function renderQuestion(q) {
+      const container = document.getElementById('questionsContainer');
+      if (!container.querySelector(`[data-qid="${q.id}"]`)) {
+        const div = document.createElement('div');
+        div.setAttribute('data-qid', q.id);
+        div.className = 'setting-item';
+        div.innerHTML = `
+          <div>
+            <strong>${q.text}</strong><br>
+            <span style="font-size: 11px; color: #666;">${q.type} ${q.options.length ? '(' + q.options.join(', ') + ')' : ''}</span>
+          </div>
+          <button class="btn btn-small btn-danger" onclick="this.parentElement.remove()">✕</button>
+        `;
+        container.appendChild(div);
+      }
+    }
+
+    function saveEvent() {
+      const name = document.getElementById('adminEventName').value.trim();
+      const date = document.getElementById('adminEventDate').value;
+      const venue = document.getElementById('adminEventVenue').value.trim();
+      const rsvpEnabled = document.getElementById('rsvpEnabled').checked;
+      const volunteerActivities = getVolunteerActivities();
+
+      if (!name || !date) {
+        alert('Please fill event name and date');
+        return;
+      }
+
+      const questions = Array.from(document.querySelectorAll('#questionsContainer [data-qid]')).map(el => {
+        const qid = el.getAttribute('data-qid');
+        return {id: qid, text: el.querySelector('strong').innerText, type: 'text', options: []};
+      });
+
+      const event = {
+        id: editingEventId || 'EVT-' + Date.now(),
+        name: name,
+        date: date,
+        venue: venue,
+        rsvpEnabled: rsvpEnabled,
+        fields: {
+          name: true,
+          phone: document.getElementById('field_phone').checked,
+          student: document.getElementById('field_student').checked
+        },
+        customQuestions: questions.length ? questions : DB.events.find(e => e.id === editingEventId)?.customQuestions || [],
+        volunteerActivities: volunteerActivities
+      };
+
+      const idx = DB.events.findIndex(e => e.id === event.id);
+      if (idx > -1) {
+        DB.events[idx] = event;
+      } else {
+        DB.events.push(event);
+      }
+
+      DB.save();
+      alert('✓ Event saved!');
+      resetEventForm();
+      loadEventsList();
+    }
+
+    function resetEventForm() {
+      editingEventId = null;
+      document.getElementById('adminEventName').value = '';
+      document.getElementById('adminEventDate').value = '';
+      document.getElementById('adminEventVenue').value = '';
+      document.getElementById('rsvpEnabled').checked = true;
+      document.getElementById('volunteerActivitiesList').innerHTML = '';
+      document.getElementById('questionsContainer').innerHTML = '';
+      document.getElementById('eventFormTitle').innerText = 'Create New Event';
+      document.getElementById('newVolunteerActivity').value = '';
+    }
+
+    function loadEventsList() {
+      const html = DB.events.map(e => `
+        <div class="event-card">
+          <h4>${e.name}</h4>
+          <p>📅 ${e.date} | 📍 ${e.venue}</p>
+          <p style="margin-top: 8px;">
+            <span style="background: ${e.rsvpEnabled ? '#4caf50' : '#999'}; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px;">
+              ${e.rsvpEnabled ? '✓ RSVP Enabled' : '✗ RSVP Disabled'}
+            </span>
+          </p>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button class="btn btn-small" onclick="editEvent('${e.id}')">Edit</button>
+            <button class="btn btn-small btn-danger" onclick="deleteEvent('${e.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('adminEventsList').innerHTML = html || '<p>No events created</p>';
+    }
+
+    function editEvent(id) {
+      const event = DB.events.find(e => e.id === id);
+      if (!event) return;
+
+      editingEventId = id;
+      document.getElementById('adminEventName').value = event.name;
+      document.getElementById('adminEventDate').value = event.date;
+      document.getElementById('adminEventVenue').value = event.venue;
+      document.getElementById('rsvpEnabled').checked = event.rsvpEnabled;
+      document.getElementById('field_phone').checked = event.fields.phone;
+      document.getElementById('field_student').checked = event.fields.student;
+
+      // Load volunteer activities
+      document.getElementById('volunteerActivitiesList').innerHTML = '';
+      (event.volunteerActivities || []).forEach(activity => {
+        const div = document.createElement('div');
+        div.className = 'setting-item';
+        div.innerHTML = `
+          <span>${activity}</span>
+          <button class="btn btn-small btn-danger" onclick="this.parentElement.remove()">Remove</button>
+        `;
+        document.getElementById('volunteerActivitiesList').appendChild(div);
+      });
+
+      document.getElementById('questionsContainer').innerHTML = '';
+      event.customQuestions.forEach(q => renderQuestion(q));
+
+      document.getElementById('eventFormTitle').innerText = 'Edit Event';
+      switchAdminTab('createEvent');
+    }
+
+    function deleteEvent(id) {
+      if (!confirm('Delete this event?')) return;
+      DB.events = DB.events.filter(e => e.id !== id);
+      DB.save();
+      loadEventsList();
+    }
+
+    function loadRsvpList() {
+      const html = DB.rsvps.map(r => {
+        const event = DB.events.find(e => e.id === r.eventId);
+        return `
+          <tr>
+            <td>${r.name}</td>
+            <td>${r.phone}</td>
+            <td>${event?.name || 'Unknown'}</td>
+            <td>${event?.date || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('rsvpListBody').innerHTML = html || '<tr><td colspan="4">No RSVPs</td></tr>';
+    }
+
+    // ===== MEMBER MANAGEMENT =====
+    function addNewMember() {
+      const id = document.getElementById('newMemberId').value.trim() || `M${String(DB.members.length + 1).padStart(3, '0')}`;
+      const name = document.getElementById('newMemberName').value.trim();
+      const phone = document.getElementById('newMemberPhone').value.trim();
+      const email = document.getElementById('newMemberEmail').value.trim();
+
+      if (!name) {
+        alert('Please enter member name');
+        return;
+      }
+
+      // Check if ID already exists
+      if (DB.members.find(m => m.id === id)) {
+        alert('ID already exists');
+        return;
+      }
+
+      const member = { id, name, phone, email };
+      DB.members.push(member);
+      DB.save();
+
+      document.getElementById('newMemberId').value = '';
+      document.getElementById('newMemberName').value = '';
+      document.getElementById('newMemberPhone').value = '';
+      document.getElementById('newMemberEmail').value = '';
+
+      alert('✓ Member added!');
+      loadMembersList();
+    }
+
+    function loadMembersList() {
+      const html = DB.members.map((m, idx) => `
+        <tr id="member-${m.id}">
+          <td><input type="text" value="${m.id}" style="width: 70px; padding: 6px; border: 1px solid #d0d8e0;" readonly></td>
+          <td><input type="text" id="name-${m.id}" value="${m.name}" style="width: 100%; padding: 6px; border: 1px solid #d0d8e0;" onchange="saveMember('${m.id}')" placeholder="Name"></td>
+          <td><input type="tel" id="phone-${m.id}" value="${m.phone}" style="width: 100%; padding: 6px; border: 1px solid #d0d8e0;" onchange="saveMember('${m.id}')" placeholder="Phone"></td>
+          <td><input type="email" id="email-${m.id}" value="${m.email}" style="width: 100%; padding: 6px; border: 1px solid #d0d8e0;" onchange="saveMember('${m.id}')" placeholder="Email"></td>
+          <td><button class="btn btn-small btn-danger" onclick="deleteMember('${m.id}')">🗑️</button></td>
+        </tr>
+      `).join('');
+
+      document.getElementById('membersList').innerHTML = html || '<tr><td colspan="5" style="text-align: center; color: #999;">No members</td></tr>';
+    }
+
+    function filterMembers() {
+      const query = document.getElementById('searchMembers').value.toLowerCase();
+      const rows = document.querySelectorAll('#membersList tr');
+
+      rows.forEach(row => {
+        const nameInput = row.querySelector('input[id^="name-"]');
+        const phoneInput = row.querySelector('input[id^="phone-"]');
+        
+        if (!nameInput) return;
+
+        const name = nameInput.value.toLowerCase();
+        const phone = phoneInput.value.toLowerCase();
+
+        const matches = name.includes(query) || phone.includes(query);
+        row.style.display = matches ? '' : 'none';
+      });
+    }
+
+    function saveMember(id) {
+      const member = DB.members.find(m => m.id === id);
+      if (!member) return;
+
+      member.name = document.getElementById('name-' + id).value;
+      member.phone = document.getElementById('phone-' + id).value;
+      member.email = document.getElementById('email-' + id).value;
+
+      DB.save();
+      console.log('✓ Saved:', member.name);
+    }
+
+    function deleteMember(id) {
+      if (!confirm('Delete this member?')) return;
+
+      DB.members = DB.members.filter(m => m.id !== id);
+      DB.save();
+      loadMembersList();
+      alert('✓ Member deleted!');
+    }
+
+    // ===== CHECK-IN SYSTEM =====
+    function loadCheckInData() {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      if (!eventId) return;
+
+      loadCheckinList(eventId);
+    }
+
+    function loadCheckInEvents() {
+      const select = document.getElementById('checkinEventSelect');
+      const html = DB.events.map(e => `
+        <option value="${e.id}">${e.name} (${e.date})</option>
+      `).join('');
+      select.innerHTML = `<option value="">Choose event...</option>` + html;
+    }
+
+    function searchRsvpForCheckin() {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      const qrId = document.getElementById('qrScanInput').value.trim();
+
+      if (!eventId) {
+        alert('Please select an event first');
+        document.getElementById('qrScanInput').value = '';
+        return;
+      }
+
+      if (!qrId) {
+        alert('Please enter RSVP ID');
+        return;
+      }
+
+      // Find RSVP
+      const rsvp = DB.rsvps.find(r => r.id === qrId && r.eventId === eventId);
+
+      const result = document.getElementById('checkinResult');
+      if (!rsvp) {
+        result.innerHTML = `<div class="alert alert-warning" style="border-left-color: #ff9800;">❌ RSVP ID not found for this event</div>`;
+        document.getElementById('qrScanInput').value = '';
+        return;
+      }
+
+      // Check if already checked in
+      const checkedIn = rsvp.checkedInAt ? true : false;
+
+      let html = `
+        <div style="background: ${checkedIn ? '#fff3e0' : '#e8f5e9'}; padding: 16px; border-radius: 6px; margin-bottom: 16px; border-left: 4px solid ${checkedIn ? '#ff9800' : '#4caf50'};">
+          <h3 style="color: ${checkedIn ? '#e65100' : '#2e7d32'}; margin-bottom: 12px;">
+            ${checkedIn ? '⚠️ Already Checked In' : '✅ Ready to Check In'}
+          </h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Name</label>
+              <input type="text" id="edit_name_${qrId}" value="${rsvp.name}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Phone</label>
+              <input type="tel" id="edit_phone_${qrId}" value="${rsvp.phone}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Attending</label>
+              <select id="edit_attend_${qrId}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+                <option value="yes" ${rsvp.attend === 'yes' ? 'selected' : ''}>Yes</option>
+                <option value="no" ${rsvp.attend === 'no' ? 'selected' : ''}>No</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Student</label>
+              <select id="edit_student_${qrId}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+                <option value="no" ${rsvp.student === 'no' ? 'selected' : ''}>No</option>
+                <option value="yes" ${rsvp.student === 'yes' ? 'selected' : ''}>Yes</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Adults</label>
+              <input type="number" id="edit_adults_${qrId}" value="${rsvp.adults || ''}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Children</label>
+              <input type="number" id="edit_children_${qrId}" value="${rsvp.children || ''}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+            </div>
+          </div>
+
+          ${checkedIn ? `
+            <p style="font-size: 12px; color: #666; margin-bottom: 16px;">
+              <strong>Checked in at:</strong> ${new Date(rsvp.checkedInAt).toLocaleString()}
+            </p>
+          ` : ''}
+      `;
+
+      if (!checkedIn) {
+        html += `
+          <div style="display: flex; gap: 10px; margin-top: 16px;">
+            <button class="btn btn-success" onclick="markCheckedIn('${qrId}')">✓ Check In</button>
+            <button class="btn" onclick="saveRsvpChanges('${qrId}')" style="background: #2196f3;">💾 Save Changes</button>
+            <button class="btn btn-secondary" onclick="clearQrInput()">Cancel</button>
+          </div>
+        `;
+      } else {
+        html += `
+          <div style="display: flex; gap: 10px; margin-top: 16px;">
+            <button class="btn" onclick="saveRsvpChanges('${qrId}')" style="background: #2196f3;">💾 Save Changes</button>
+            <button class="btn btn-secondary" onclick="undoCheckin('${qrId}')">Undo Check-In</button>
+            <button class="btn btn-secondary" onclick="clearQrInput()">Close</button>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+      result.innerHTML = html;
+    }
+
+    function markCheckedIn(qrId) {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      const rsvp = DB.rsvps.find(r => r.id === qrId && r.eventId === eventId);
+
+      if (!rsvp) return;
+
+      // Save any edited fields first
+      rsvp.name = document.getElementById('edit_name_' + qrId).value;
+      rsvp.phone = document.getElementById('edit_phone_' + qrId).value;
+      rsvp.attend = document.getElementById('edit_attend_' + qrId).value;
+      rsvp.student = document.getElementById('edit_student_' + qrId).value;
+      rsvp.adults = document.getElementById('edit_adults_' + qrId).value;
+      rsvp.children = document.getElementById('edit_children_' + qrId).value;
+
+      // Mark checked in
+      rsvp.checkedInAt = new Date().toISOString();
+      DB.save();
+
+      document.getElementById('qrScanInput').value = '';
+      document.getElementById('checkinResult').innerHTML = `
+        <div class="alert alert-success">
+          ✅ ${rsvp.name} has been checked in!
+        </div>
+      `;
+
+      loadCheckinList(eventId);
+
+      setTimeout(() => {
+        document.getElementById('qrScanInput').focus();
+        document.getElementById('checkinResult').innerHTML = '';
+      }, 2000);
+    }
+
+    function saveRsvpChanges(qrId) {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      const rsvp = DB.rsvps.find(r => r.id === qrId && r.eventId === eventId);
+
+      if (!rsvp) return;
+
+      // Update fields
+      rsvp.name = document.getElementById('edit_name_' + qrId).value.trim();
+      rsvp.phone = document.getElementById('edit_phone_' + qrId).value.trim();
+      rsvp.attend = document.getElementById('edit_attend_' + qrId).value;
+      rsvp.student = document.getElementById('edit_student_' + qrId).value;
+      rsvp.adults = document.getElementById('edit_adults_' + qrId).value;
+      rsvp.children = document.getElementById('edit_children_' + qrId).value;
+
+      if (!rsvp.name) {
+        alert('Name cannot be empty');
+        return;
+      }
+
+      DB.save();
+      alert('✓ Changes saved!');
+      
+      loadCheckinList(eventId);
+      document.getElementById('qrScanInput').value = '';
+      document.getElementById('checkinResult').innerHTML = '';
+      document.getElementById('qrScanInput').focus();
+    }
+
+    function clearQrInput() {
+      document.getElementById('qrScanInput').value = '';
+      document.getElementById('checkinResult').innerHTML = '';
+      document.getElementById('qrScanInput').focus();
+    }
+
+    function loadCheckinList(eventId) {
+      const eventRsvps = DB.rsvps.filter(r => r.eventId === eventId);
+
+      const html = eventRsvps.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.phone}</td>
+          <td>${r.adults || '-'}</td>
+          <td>${r.children || '-'}</td>
+          <td>
+            <span style="background: ${r.checkedInAt ? '#4caf50' : '#999'}; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600;">
+              ${r.checkedInAt ? '✓ Checked In' : 'Pending'}
+            </span>
+          </td>
+          <td>
+            ${!r.checkedInAt ? `
+              <button class="btn btn-small" onclick="markCheckedIn('${r.id}')">Check In</button>
+            ` : `
+              <button class="btn btn-small" onclick="undoCheckin('${r.id}')" style="background: #ff9800;">Undo</button>
+            `}
+          </td>
+        </tr>
+      `).join('');
+
+      document.getElementById('checkinList').innerHTML = html || '<tr><td colspan="6" style="text-align: center; color: #999;">No RSVPs for this event</td></tr>';
+    }
+
+    function undoCheckin(qrId) {
+      if (!confirm('Undo check-in for this person?')) return;
+
+      const rsvp = DB.rsvps.find(r => r.id === qrId);
+      if (rsvp) {
+        rsvp.checkedInAt = null;
+        DB.save();
+
+        const eventId = document.getElementById('checkinEventSelect').value;
+        loadCheckinList(eventId);
+      }
+    }
+
+    function filterCheckinList() {
+      const query = document.getElementById('filterCheckin').value.toLowerCase();
+      const rows = document.querySelectorAll('#checkinList tr');
+
+      rows.forEach(row => {
+        const name = row.querySelector('td')?.innerText.toLowerCase() || '';
+        row.style.display = name.includes(query) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

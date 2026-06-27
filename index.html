@@ -1,0 +1,2482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Management & RSVP System</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #f8f9fa; 
+      color: #1a1a1a; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    
+    .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .header { 
+      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+      color: white;
+      text-align: center; 
+      margin: -20px -20px 30px -20px;
+      padding: 40px 20px;
+      border-radius: 0 0 12px 12px;
+    }
+    .header h1 { font-size: 28px; margin-bottom: 10px; font-weight: 700; }
+    
+    .role-switch {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    
+    .card { 
+      background: white; 
+      border: 1px solid #e0e0e0;
+      padding: 25px; 
+      margin-bottom: 20px; 
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .card h2 { 
+      font-size: 18px; 
+      color: #0066cc; 
+      margin-bottom: 20px; 
+      padding-bottom: 12px; 
+      border-bottom: 2px solid #e8f0ff;
+    }
+    .card h3 { 
+      font-size: 15px; 
+      color: #333;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    
+    .form-group { margin-bottom: 16px; }
+    .form-group label { 
+      display: block; 
+      font-size: 13px; 
+      color: #333;
+      margin-bottom: 8px; 
+      font-weight: 600;
+    }
+    .form-group input, .form-group select, .form-group textarea { 
+      width: 100%; 
+      padding: 11px 14px; 
+      background: #f8f9fa; 
+      border: 1.5px solid #d0d8e0; 
+      color: #1a1a1a; 
+      font-size: 14px; 
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { 
+      outline: none; 
+      border-color: #0066cc;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+    }
+    
+    .btn { 
+      padding: 12px 20px; 
+      background: #0066cc; 
+      color: white; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: 600; 
+      border-radius: 6px; 
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .btn:hover { 
+      background: #0052a3;
+      transform: translateY(-1px);
+    }
+    .btn-secondary { 
+      background: white; 
+      border: 1.5px solid #0066cc; 
+      color: #0066cc;
+    }
+    .btn-secondary:hover { background: #e8f0ff; }
+    .btn-small { padding: 8px 12px; font-size: 12px; }
+    .btn-danger { background: #f44336; }
+    .btn-danger:hover { background: #d32f2f; }
+    .btn-success { background: #4caf50; }
+    .btn-success:hover { background: #388e3c; }
+    
+    .checkbox-group { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 12px; 
+    }
+    .checkbox-group label { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      font-size: 14px; 
+      font-weight: 400;
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+    .checkbox-group input[type="checkbox"] { 
+      width: 18px; 
+      height: 18px; 
+      cursor: pointer;
+      accent-color: #0066cc;
+    }
+    
+    .tabs { 
+      display: flex; 
+      gap: 5px; 
+      margin-bottom: 20px; 
+      border-bottom: 2px solid #e0e0e0;
+      overflow-x: auto;
+    }
+    .tabs button { 
+      background: none; 
+      border: none; 
+      padding: 12px 14px; 
+      color: #666; 
+      cursor: pointer; 
+      font-size: 13px; 
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+    .tabs button.active { 
+      color: #0066cc; 
+      border-bottom-color: #0066cc;
+    }
+    
+    .hidden { display: none; }
+    
+    .event-card {
+      background: #e8f0ff;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border-left: 4px solid #0066cc;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .event-card:hover {
+      background: #d1e0ff;
+      transform: translateX(4px);
+    }
+    .event-card h4 { color: #0066cc; margin-bottom: 4px; }
+    .event-card p { font-size: 12px; color: #666; }
+    
+    .setting-item {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .alert { 
+      padding: 14px 16px; 
+      border-radius: 6px; 
+      margin-bottom: 16px; 
+      font-size: 14px;
+      border-left: 4px solid;
+    }
+    .alert-success { 
+      background: #e8f5e9; 
+      color: #2e7d32;
+      border-left-color: #4caf50;
+    }
+    .alert-warning {
+      background: #fff3e0;
+      color: #e65100;
+      border-left-color: #ff9800;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #4caf50;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    .table-responsive {
+      overflow-x: auto;
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      font-size: 13px;
+    }
+    table th { 
+      background: #e8f0ff; 
+      padding: 12px; 
+      text-align: left; 
+      font-weight: 600;
+      color: #0066cc;
+    }
+    table td { 
+      padding: 12px; 
+      border-bottom: 1px solid #e0e0e0;
+    }
+    table tr:hover { background: #f8f9fa; }
+    
+    .step-indicator {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      justify-content: center;
+    }
+    
+    .step {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      background: #e0e0e0;
+      color: #666;
+    }
+    
+    .step.active {
+      background: #0066cc;
+      color: white;
+    }
+    
+    .qr-container { 
+      text-align: center; 
+      margin: 25px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+    .qr-container img { max-width: 200px; border: 2px solid #0066cc; border-radius: 6px; }
+
+    /* ===== EXPENSE MANAGEMENT STYLES ===== */
+    .expense-summary-box {
+      background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+      color: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .expense-summary-box .big-number {
+      font-size: 36px;
+      font-weight: 700;
+      margin: 8px 0;
+    }
+    .expense-summary-box .sub-label {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+    .expense-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .expense-stat {
+      background: #f0f7ff;
+      border: 1.5px solid #c8deff;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+    .expense-stat .stat-val {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0066cc;
+    }
+    .expense-stat .stat-label {
+      font-size: 11px;
+      color: #555;
+      margin-top: 4px;
+    }
+    .exclusion-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      background: #f8f9fa;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .exclusion-row .excl-info { flex: 1; }
+    .exclusion-row .excl-label { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+    .exclusion-row .excl-count { font-size: 12px; color: #666; margin-top: 2px; }
+    .exclusion-row.excluded { border-color: #ff9800; background: #fff8f0; }
+    .excl-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 10px;
+      background: #ff9800;
+      color: white;
+      margin-left: 8px;
+    }
+
+    /* ===== STUDENT BADGE in RSVP ===== */
+    .student-badge {
+      display: inline-block;
+      background: #e3f2fd;
+      color: #1565c0;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      border: 1px solid #90caf9;
+      margin-left: 6px;
+    }
+    
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      .card { padding: 16px; }
+      .tabs { gap: 0; }
+      .tabs button { padding: 10px 10px; font-size: 11px; }
+      .expense-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Event Management & RSVP System</h1>
+      <p>Complete event management, RSVP, and check-in solution</p>
+      <div class="role-switch">
+        <button class="btn btn-small" onclick="switchRole('attendee')" id="roleAttendee">📝 Attendee</button>
+        <button class="btn-secondary btn btn-small" onclick="switchRole('admin')" id="roleAdmin">⚙️ Admin</button>
+      </div>
+    </div>
+
+    <!-- ===== ATTENDEE VIEW ===== -->
+    <div id="attendeeView">
+      <!-- Step 1: Select Event -->
+      <div id="eventSelectionStep" class="card">
+        <h2>Select Event</h2>
+        <p style="color: #666; margin-bottom: 20px; font-size: 13px;">Choose an event to RSVP for:</p>
+        <div id="eventList"></div>
+      </div>
+
+      <!-- Step 2-4: RSVP Form -->
+      <div id="rsvpFormStep" class="card hidden">
+        <div class="step-indicator">
+          <div class="step active" id="stepInd1">1</div>
+          <div class="step" id="stepInd2">2</div>
+          <div class="step" id="stepInd3">3</div>
+        </div>
+
+        <h2 id="stepTitle">Your Information</h2>
+
+        <!-- Step 1: Name & Phone -->
+        <div id="rsvpStep1">
+          <div class="form-group">
+            <label>Search your name or add manually</label>
+            <input type="text" id="nameSearch" placeholder="Type name or last 4 digits..." onkeyup="searchAttendees()">
+          </div>
+          <div id="searchResults" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;"></div>
+
+          <div style="margin: 20px 0; text-align: center; color: #999; font-size: 12px;">— OR —</div>
+
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="manualName" placeholder="Full name">
+          </div>
+          
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div style="display: grid; grid-template-columns: 120px 1fr; gap: 10px;">
+              <select id="countryCode">
+                <option value="+1">🇺🇸 +1</option>
+                <option value="+91">🇮🇳 +91</option>
+                <option value="+44">🇬🇧 +44</option>
+                <option value="+61">🇦🇺 +61</option>
+              </select>
+              <input type="tel" id="manualPhone" placeholder="10 digit">
+            </div>
+          </div>
+
+          <button class="btn" onclick="attendeeGoToStep(2)">Continue</button>
+        </div>
+
+        <!-- Step 2: Event Questions -->
+        <div id="rsvpStep2" class="hidden">
+          <div id="dynamicFields"></div>
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" onclick="attendeeGoToStep(3)">Review & Submit</button>
+            <button class="btn btn-secondary" onclick="attendeeGoToStep(1)">Back</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Confirmation -->
+        <div id="rsvpStep3" class="hidden">
+          <div class="alert alert-success">✓ RSVP Submitted Successfully!</div>
+          <div id="confirmSummary" style="background: #e8f5e9; padding: 16px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #4caf50;"></div>
+          
+          <div class="qr-container">
+            <p style="color: #666; margin-bottom: 12px; font-size: 12px;">Your QR Code for Check-in:</p>
+            <img id="confirmQR" src="" alt="QR Code">
+          </div>
+
+          <div style="background: #e3f2fd; padding: 14px; border-radius: 6px; margin-bottom: 16px; font-size: 12px; color: #0066cc; line-height: 1.6;">
+            <strong>📋 How to share your QR code:</strong><br><br>
+            <strong>Option 1: Download & Share</strong><br>
+            • Download QR image<br>
+            • Send via WhatsApp, Text, or Email<br><br>
+            
+            <strong>Option 2: Screenshot</strong><br>
+            • Take screenshot of QR code<br>
+            • Share screenshot via any app<br><br>
+            
+            <strong>Option 3: Print</strong><br>
+            • Download QR image<br>
+            • Print for physical copy<br><br>
+            
+            Save or share with event organizers! 🎉
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+            <button class="btn" onclick="downloadQR()" style="flex: 1; min-width: 140px;">⬇ Download QR</button>
+            <button class="btn btn-secondary" onclick="backToEventSelect()" style="flex: 1; min-width: 140px;">← Back to Events</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ADMIN VIEW ===== -->
+    <div id="adminView" class="hidden">
+      <div class="tabs">
+        <button class="active" onclick="switchAdminTab('createEvent', this)">Create Event</button>
+        <button onclick="switchAdminTab('eventsList', this)">Events List</button>
+        <button onclick="switchAdminTab('members', this)">📋 Members</button>
+        <button onclick="switchAdminTab('checkin', this)">✓ Check-In</button>
+        <button onclick="switchAdminTab('rsvpList', this)">RSVPs</button>
+        <button onclick="switchAdminTab('expenses', this)">💰 Expenses</button>
+      </div>
+
+      <!-- Create/Edit Event -->
+      <div id="createEventTab" class="card">
+        <h2 id="eventFormTitle">Create New Event</h2>
+        
+        <div style="background: #fff3e0; padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #ff9800;">
+          <p style="font-size: 12px; color: #e65100; margin: 0;"><strong>💡 First time?</strong> Click "Reset Demo Data" below to load sample event</p>
+        </div>
+
+        <div class="form-group">
+          <label>Event Name</label>
+          <input type="text" id="adminEventName" placeholder="e.g., Ambedkar Jayanti 2026">
+        </div>
+
+        <div class="form-group">
+          <label>Event Date</label>
+          <input type="date" id="adminEventDate">
+        </div>
+
+        <div class="form-group">
+          <label>Event Venue</label>
+          <input type="text" id="adminEventVenue" placeholder="Location">
+        </div>
+
+        <h3>Enable RSVP</h3>
+        <div class="setting-item">
+          <label>Accept RSVPs for this event</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="rsvpEnabled" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <h3>Attendee Information</h3>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="field_name" checked> Full Name (always required)</label>
+          <label><input type="checkbox" id="field_phone" checked> Phone Number</label>
+          <label><input type="checkbox" id="field_student" checked> Student Status</label>
+        </div>
+
+        <h3>Volunteer Activities</h3>
+        <div id="volunteerActivitiesList" style="margin-bottom: 16px;"></div>
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+          <input type="text" id="newVolunteerActivity" placeholder="e.g., Food Setup" style="flex: 1;">
+          <button class="btn btn-small" onclick="addVolunteerActivity()">+ Add</button>
+        </div>
+        <div id="questionsContainer"></div>
+        
+        <div style="margin-top: 16px; padding: 12px; background: #f0f7ff; border-radius: 6px;">
+          <p style="font-size: 12px; color: #0066cc; margin-bottom: 10px;">Add a Custom Question:</p>
+          <div class="form-group">
+            <input type="text" id="newQuestionText" placeholder="Question (e.g., How many adults?)" style="margin-bottom: 8px;">
+            <select id="newQuestionType" style="margin-bottom: 8px;">
+              <option value="text">Text Input</option>
+              <option value="number">Number</option>
+              <option value="checkbox">Checkboxes</option>
+              <option value="radio">Multiple Choice</option>
+              <option value="dropdown">Dropdown</option>
+            </select>
+            <input type="text" id="newQuestionOptions" placeholder="Options (comma-separated, for checkbox/radio/dropdown)" style="margin-bottom: 8px;">
+            <button class="btn btn-small" onclick="addCustomQuestion()">+ Add Question</button>
+          </div>
+        </div>
+
+        <button class="btn btn-success" onclick="saveEvent()" style="margin-top: 20px; width: 100%;">💾 Save Event</button>
+        <button class="btn-secondary btn" onclick="resetDemoData()" style="margin-top: 10px; width: 100%;">🔄 Reset Demo Data</button>
+      </div>
+
+      <!-- Events List -->
+      <div id="eventsListTab" class="card hidden">
+        <h2>Manage Events</h2>
+        <div id="adminEventsList"></div>
+      </div>
+
+      <!-- Members Database -->
+      <div id="membersTab" class="card hidden">
+        <h2>📋 Master Member Database</h2>
+
+        <!-- Stats bar -->
+        <div id="memberStatsBar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;"></div>
+
+        <!-- Toolbar: search + import/export -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+          <input type="text" id="searchMembers" placeholder="🔍 Search name, phone, email, location..." 
+            onkeyup="filterMembers()" 
+            style="flex:1;min-width:180px;padding:10px 14px;border:1.5px solid #d0d8e0;border-radius:6px;font-size:14px;">
+          <select id="filterMembership" onchange="filterMembers()" style="padding:10px 10px;border:1.5px solid #d0d8e0;border-radius:6px;font-size:13px;background:#f8f9fa;">
+            <option value="">All Members</option>
+            <option value="Core">Core only</option>
+            <option value="non-Core">Non-Core only</option>
+          </select>
+          <select id="filterDues" onchange="filterMembers()" style="padding:10px 10px;border:1.5px solid #d0d8e0;border-radius:6px;font-size:13px;background:#f8f9fa;">
+            <option value="">All Dues</option>
+            <option value="yes">Dues Paid</option>
+            <option value="no">Dues Not Paid</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+          <button class="btn btn-success btn-small" onclick="openAddMemberModal()">➕ Add Member</button>
+          <label class="btn btn-small" style="background:#6c757d;cursor:pointer;margin:0;">
+            📥 Import CSV
+            <input type="file" id="csvImportInput" accept=".csv" onchange="importMasterCSV(event)" style="display:none;">
+          </label>
+          <button class="btn btn-small" style="background:#17a2b8;" onclick="exportMasterCSV()">📤 Export CSV</button>
+          <button class="btn btn-small" style="background:#7b1fa2;" onclick="loadMasterDefaults()" title="Reset to the built-in 311-member Ambedkar master list">🔁 Load Master List</button>
+        </div>
+
+        <!-- Members count -->
+        <div style="font-size:12px;color:#888;margin-bottom:10px;" id="memberCountLabel"></div>
+
+        <!-- Members Table -->
+        <div class="table-responsive">
+          <table id="membersTable">
+            <thead>
+              <tr>
+                <th style="width:60px;">ID</th>
+                <th>Full Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Location</th>
+                <th>Membership</th>
+                <th>Dues</th>
+                <th>Coordinator</th>
+                <th>Status</th>
+                <th style="width:80px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="membersList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== ADD/EDIT MEMBER MODAL ===== -->
+      <div id="memberModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;overflow-y:auto;padding:20px;">
+        <div style="background:white;border-radius:10px;max-width:600px;margin:20px auto;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h2 id="modalTitle" style="color:#0066cc;font-size:18px;margin:0;">Add Member</h2>
+            <button onclick="closeMemberModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;line-height:1;">✕</button>
+          </div>
+
+          <input type="hidden" id="modalMemberId">
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>ID <span style="color:#999;font-size:11px;">(auto if blank)</span></label>
+              <input type="text" id="mf_id" placeholder="e.g. M312">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Full Name <span style="color:#e53935;font-size:11px;">*</span></label>
+              <input type="text" id="mf_name" placeholder="Full Name">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Phone</label>
+              <input type="tel" id="mf_phone" placeholder="(xxx) xxx-xxxx">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Email</label>
+              <input type="email" id="mf_email" placeholder="email@example.com">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Alt Email</label>
+              <input type="email" id="mf_altemail" placeholder="alt@example.com">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Location</label>
+              <input type="text" id="mf_location" placeholder="e.g. Boston, Houston TX">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Spouse</label>
+              <input type="text" id="mf_spouse" placeholder="Spouse name">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>2026 Dues Paid?</label>
+              <select id="mf_dues">
+                <option value="">—</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Coordinator</label>
+              <input type="text" id="mf_coordinator" placeholder="Coordinator name">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Membership</label>
+              <select id="mf_membership">
+                <option value="non-Core">non-Core</option>
+                <option value="Core">Core</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:0;grid-column:1/-1;">
+              <label>Comments</label>
+              <input type="text" id="mf_comments" placeholder="Any comments...">
+            </div>
+            <div class="form-group" style="margin-bottom:0;grid-column:1/-1;">
+              <label>Sources</label>
+              <input type="text" id="mf_sources" placeholder="Source info">
+            </div>
+            <div class="form-group" style="margin-bottom:0;grid-column:1/-1;">
+              <label>Notes <span style="font-size:11px;color:#888;">(auto-computed or manual)</span></label>
+              <input type="text" id="mf_notes" placeholder="e.g. ✓ Complete or ⚠ No phone">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:20px;">
+            <button class="btn btn-success" onclick="saveMemberModal()" style="flex:1;">💾 Save Member</button>
+            <button class="btn btn-secondary" onclick="closeMemberModal()" style="flex:1;">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Check-In -->
+      <div id="checkinTab" class="card hidden">
+        <h2>Event Check-In</h2>
+        
+        <div class="form-group">
+          <label>Select Event</label>
+          <select id="checkinEventSelect" onchange="loadCheckInData()">
+            <option value="">Choose event...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Scan QR Code or Enter RSVP ID</label>
+          <input type="text" id="qrScanInput" placeholder="Paste QR ID here and press Enter..." autofocus onkeypress="if(event.key==='Enter') searchRsvpForCheckin();">
+        </div>
+
+        <div id="checkinResult"></div>
+
+        <h3 style="margin-top: 30px;">Check-In Status</h3>
+        <div class="form-group">
+          <input type="text" id="filterCheckin" placeholder="Search by name..." onkeyup="filterCheckinList()">
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Student</th>
+                <th>Adults</th>
+                <th>Children</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="checkinList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RSVPs List -->
+      <div id="rsvpListTab" class="card hidden">
+        <h2>RSVP Submissions</h2>
+        <div class="form-group">
+          <input type="text" id="filterRsvpEvent" placeholder="Filter by event..." onchange="loadRsvpList()">
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Student</th>
+                <th>Adults</th>
+                <th>Children</th>
+                <th>Event</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="rsvpListBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== EXPENSE MANAGEMENT TAB ===== -->
+      <div id="expensesTab" class="card hidden">
+        <h2>💰 Expense Management</h2>
+
+        <!-- Event Selector -->
+        <div class="form-group">
+          <label>Select Event</label>
+          <select id="expenseEventSelect" onchange="loadExpenseData()">
+            <option value="">Choose event...</option>
+          </select>
+        </div>
+
+        <div id="expenseContent" class="hidden">
+
+          <!-- Total Expense Input -->
+          <div style="background: #f0f7ff; border: 1.5px solid #c8deff; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+            <label style="display: block; font-size: 13px; font-weight: 700; color: #0066cc; margin-bottom: 10px;">Total Event Expense ($)</label>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="number" id="totalExpenseInput" placeholder="e.g., 1500" min="0" step="0.01"
+                style="flex: 1; padding: 12px 14px; font-size: 18px; font-weight: 700; border: 1.5px solid #0066cc; border-radius: 6px; background: white;"
+                oninput="recalcExpenses()">
+              <span style="font-size: 22px; color: #0066cc;">💵</span>
+            </div>
+          </div>
+
+          <!-- Exclusion Controls -->
+          <h3 style="margin-top: 0;">Guest Exclusions <span style="font-size: 12px; font-weight: 400; color: #888;">(toggle to exclude from per-head calculation)</span></h3>
+
+          <div class="exclusion-row" id="excl-students-row">
+            <div class="excl-info">
+              <div class="excl-label">🎓 Students <span id="excl-students-badge" class="excl-badge hidden">Excluded</span></div>
+              <div class="excl-count" id="excl-students-count">0 students RSVPed attending</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="excl-students" onchange="recalcExpenses()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="exclusion-row" id="excl-children-row">
+            <div class="excl-info">
+              <div class="excl-label">👶 Children <span id="excl-children-badge" class="excl-badge hidden">Excluded</span></div>
+              <div class="excl-count" id="excl-children-count">0 children in RSVPs</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="excl-children" onchange="recalcExpenses()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="exclusion-row" id="excl-noshow-row">
+            <div class="excl-info">
+              <div class="excl-label">🚫 Non-Attending RSVPs <span id="excl-noshow-badge" class="excl-badge hidden">Excluded</span></div>
+              <div class="excl-count" id="excl-noshow-count">0 people RSVPed "No"</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="excl-noshow" checked onchange="recalcExpenses()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="exclusion-row" id="excl-notcheckedin-row">
+            <div class="excl-info">
+              <div class="excl-label">📋 Not Checked In <span id="excl-notcheckedin-badge" class="excl-badge hidden">Excluded</span></div>
+              <div class="excl-count" id="excl-notcheckedin-count">0 attendees not checked in</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="excl-notcheckedin" onchange="recalcExpenses()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Results Summary -->
+          <div class="expense-summary-box" style="margin-top: 24px;">
+            <div class="sub-label">Per Head Expense</div>
+            <div class="big-number" id="perHeadDisplay">$0.00</div>
+            <div class="sub-label">based on <span id="includedCountDisplay">0</span> included guests</div>
+          </div>
+
+          <div class="expense-grid">
+            <div class="expense-stat">
+              <div class="stat-val" id="statTotalRsvp">0</div>
+              <div class="stat-label">Total RSVPs</div>
+            </div>
+            <div class="expense-stat">
+              <div class="stat-val" id="statIncluded">0</div>
+              <div class="stat-label">Included Guests</div>
+            </div>
+            <div class="expense-stat">
+              <div class="stat-val" id="statExcluded">0</div>
+              <div class="stat-label">Excluded Guests</div>
+            </div>
+            <div class="expense-stat">
+              <div class="stat-val" id="statStudents">0</div>
+              <div class="stat-label">Students</div>
+            </div>
+            <div class="expense-stat">
+              <div class="stat-val" id="statChildren">0</div>
+              <div class="stat-label">Children</div>
+            </div>
+            <div class="expense-stat">
+              <div class="stat-val" id="statCheckedIn">0</div>
+              <div class="stat-label">Checked In</div>
+            </div>
+          </div>
+
+          <!-- Breakdown Table -->
+          <h3>Guest Breakdown</h3>
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Adults</th>
+                  <th>Children</th>
+                  <th>Checked In</th>
+                  <th>Included</th>
+                </tr>
+              </thead>
+              <tbody id="expenseBreakdownTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="expenseEmptyState" style="text-align: center; padding: 40px 20px; color: #999;">
+          <p style="font-size: 32px; margin-bottom: 12px;">💰</p>
+          <p>Select an event above to manage expenses</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ===== DATABASE (localStorage — persists across sessions on GitHub Pages) =====
+    const DB = {
+      events:  [],
+      rsvps:   [],
+      members: [],
+
+      load() {
+        try {
+          this.events  = JSON.parse(localStorage.getItem('amb_events')  || '[]');
+          this.rsvps   = JSON.parse(localStorage.getItem('amb_rsvps')   || '[]');
+          this.members = JSON.parse(localStorage.getItem('amb_members') || '[]');
+        } catch(e) {
+          this.events = []; this.rsvps = []; this.members = [];
+        }
+      },
+
+      save() {
+        try {
+          localStorage.setItem('amb_events',  JSON.stringify(this.events));
+          localStorage.setItem('amb_rsvps',   JSON.stringify(this.rsvps));
+          localStorage.setItem('amb_members', JSON.stringify(this.members));
+        } catch(e) { console.warn('Storage save failed:', e); }
+      }
+    };
+
+    // ===== MASTER MEMBER LIST (311 members from Ambedkar master CSV) =====
+    const SAMPLE_MEMBERS = [
+  {id:'M001',name:'Aakash Wasnik',phone:'',email:'aakashw@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M002',name:'Aakashi Ganveer Family',phone:'(713) 855-4861',email:'',altemail:'',location:'Boston',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M003',name:'Abhijit Mohod',phone:'',email:'abhijit.mohod@gmail.com',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M004',name:'Aditi Ramteke',phone:'(551) 998-4224',email:'aditiramteke@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M005',name:'Ajay Bhingare',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M006',name:'Alka Lakhote',phone:'',email:'alka.lakhote@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M007',name:'Amol Ingle',phone:'',email:'amolingle2382@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M008',name:'Amol Ragde Family',phone:'(508) 762-8844',email:'',altemail:'',location:'Boston',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M009',name:'Amrapali Hemant Chauhan',phone:'(612) 913-6412',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M010',name:'Anand Kadam',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M011',name:'Aniket Annasaheb Maske',phone:'',email:'',altemail:'',location:'Michigan',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M012',name:'Aniket Maske And Family',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M013',name:'Aniket Nagdeve',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M014',name:'Anil Wagde',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M015',name:'Anilkumar',phone:'',email:'anilkumrs@gmail.com',altemail:'',location:'Dallas, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M016',name:'Aniruddha Surve',phone:'',email:'aniruddhsurve@gmail.com',altemail:'',location:'',spouse:'',dues:'Yes',coordinator:'Ninad Khade',comments:'',membership:'Core',sources:'',notes:'⚠ No phone'},
+  {id:'M017',name:'Anjlee Sidhartha',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M018',name:'Ankur Ganveer',phone:'(713) 409-0411',email:'ankur.ganveer@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M019',name:'Ankur Ganvir',phone:'(713) 409-0411',email:'',altemail:'',location:'',spouse:'Lalita',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M020',name:'Antariksh Waghmare',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M021',name:'Anup Meshram',phone:'(979) 739-7865',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M022',name:'Anupam Pagarey',phone:'(989) 080-1750',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M023',name:'Anupama Shende',phone:'(917) 442-1064',email:'s0anu21@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M024',name:'Anushree Kaple',phone:'',email:'anushreenkaple@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M025',name:'Apurva Gaikwad',phone:'',email:'',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M026',name:'Apurva Mendhe',phone:'(314) 728-8451',email:'',altemail:'',location:'',spouse:'Manjrekar Nimisha',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M027',name:'Apurva Sonu Mendhe',phone:'(314) 728-8451',email:'drapurvamedhe@gmail.com',altemail:'',location:'',spouse:'Manjrekar Nimisha',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M028',name:'Archana Wasnik',phone:'',email:'archana.bagde86@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M029',name:'Aruna Podumpudi',phone:'(973) 960-8152',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M030',name:'Aruna Pothumudi',phone:'',email:'aak.sap@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M031',name:'Ashish Patil',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M032',name:'Ashishkumar Borkar',phone:'',email:'ashishkumar.borkar23@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M033',name:'Ashok Pindiga',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M034',name:'Ashwin Urkude',phone:'',email:'ashwinurkude@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M035',name:'Ashwini Survase',phone:'',email:'nitindhaktode@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M036',name:'Ashwini Wankhede',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M037',name:'Asmita Sampat Sasane',phone:'(518) 256-4383',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M038',name:'Avinash Shahare',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M039',name:'Bagampriya Sundaram',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M040',name:'Bala Murugan Raman',phone:'',email:'jojokavi2@gmail.com',altemail:'',location:'Chicago',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M041',name:'Bhushan Sakhare',phone:'',email:'bhushanj.sakhare@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M042',name:'Biju Matthew',phone:'(917) 232-8437',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M043',name:'Bipin Bhosle',phone:'(732) 668-5796',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M044',name:'Bipin D Bhosale',phone:'',email:'bb77social@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M045',name:'Bollapalli Shanthi',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M046',name:'Buchanna Gajula',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M047',name:'Charandass Rail',phone:'',email:'',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M048',name:'Charudatta Mhasade',phone:'(929) 494-5274',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M049',name:'Chetan C Janbandhu',phone:'',email:'chetanj@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M050',name:'Chitra Satyajit Somavanshi',phone:'(267) 303-4743',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M051',name:'Cynthia Stephen',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M052',name:'D.b. Sagar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M053',name:'Debolina Sanyal',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M054',name:'Deepa Radhakrishnan',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M055',name:'Deepak D Shinde',phone:'(973) 987-5120',email:'shinde.d@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'Relief assist',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M056',name:'Deepak Shinde',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M057',name:'Deepali Gade',phone:'',email:'law.gade@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M058',name:'Dharmendra Awasarmol',phone:'',email:'awasarmols123@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M059',name:'Dhivya Gnanasekar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M060',name:'Dipti Parmar',phone:'(848) 250-9059',email:'dpnj@hotmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'Laxmikant Rode',comments:'No response to messages',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M061',name:'Dr. Suresh Kumar',phone:'',email:'',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M062',name:'Dr. Velu Annamalia',phone:'',email:'',altemail:'',location:'Washington DC',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M063',name:'Eldrys Laxmikant Rode',phone:'(267) 328-8211',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M064',name:'Fulzale Sonali Vivek',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M065',name:'Gajanan Gaikwad',phone:'',email:'gajanangaikwad@gmail.com',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M066',name:'Gaurav Gedam',phone:'(551) 326-1591',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M067',name:'Gaurav Pathania',phone:'(202) 997-8359',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M068',name:'Gautam Parmar',phone:'',email:'parmar_gautam@icloud.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M069',name:'Gideon Jebamani',phone:'(914) 356-1258',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M070',name:'Giribala Thomas',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M071',name:'Giridhar Meshram',phone:'',email:'giridharmeshram@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M072',name:'Gyan Kumar',phone:'(631) 875-9189',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M073',name:'Gyan Prakash Tripathi',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M074',name:'Hadke Family',phone:'(484) 633-4007',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M075',name:'Harvineet Singh',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M076',name:'Hemadri Saxena',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M077',name:'Himanshu S Dahiwale',phone:'',email:'himanshudahiwale01@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M078',name:'Indu Bhoyarkar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M079',name:'Indus N',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M080',name:'Iswar Naik',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M081',name:'Jagdish Bankar',phone:'(214) 282-5112',email:'jgbankar60@gmail.com',altemail:'',location:'Dallas, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M082',name:'Jagdish Dongre',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M083',name:'Jai Birdi',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M084',name:'Janbandhu Jyoti Chetan',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M085',name:'Jay Borkar',phone:'(732) 322-4048',email:'jayborkar24@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M086',name:'Jay Meshram',phone:'(950) 383-2899',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M087',name:'Jayan Cherian',phone:'(718) 753-7285',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M088',name:'Jayashree Kamble',phone:'(347) 361-9031',email:'jayu_z@yahoo.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M089',name:'Jayashree S Kamble',phone:'(347) 361-9031',email:'jayu77@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M090',name:'Josna Rege',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M091',name:'Jyoti Chavan',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M092',name:'Jyotsna Kamble Ashwghosh',phone:'(508) 904-4567',email:'',altemail:'',location:'Boston',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M093',name:'Kalpana Augustin',phone:'',email:'kalpana.ramteke22@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M094',name:'Kalpana Bobby Augistine',phone:'(718) 359-1093',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M095',name:'Kamam',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M096',name:'Kamlesh V Ujagare',phone:'',email:'kamlesh.ujgare@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M097',name:'Karuna Nitin Suryatale',phone:'(718) 208-5287',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M098',name:'Khan Hasan',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M099',name:'Khushalata Asit Sangode',phone:'(347) 268-0627',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M100',name:'Kiran Padale',phone:'(215) 530-3838',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M101',name:'Komal Dhande',phone:'(551) 358-3634',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M102',name:'Komal Undirwade',phone:'',email:'komalundirwade@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M103',name:'Konica Moon',phone:'',email:'konica.moon@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M104',name:'Kritika Kanphade',phone:'',email:'kritikakanphade@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M105',name:'Lalita Ankur Ganveer',phone:'(713) 409-0411',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M106',name:'Lavanya Raj',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M107',name:'Laxmikant Rode',phone:'(267) 328-8211',email:'laxmikantiss@gmail.com',altemail:'',location:'',spouse:'Eldris',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M108',name:'Lokesh Kamble',phone:'(718) 666-2943',email:'lokesh.a.kamble@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M109',name:'Lutana Avinash Raut',phone:'(267) 328-8215',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M110',name:'Mahendra A Birhade',phone:'',email:'mahendra.birhade@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M111',name:'Mahendra Smita Gaikwad',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M112',name:'Mahesh Meria',phone:'(201) 936-0194',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M113',name:'Maheshkumar Meria',phone:'',email:'mdmeria@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M114',name:'Manish Meshram',phone:'(827) 553-0627',email:'manish.mshrm@hotmail.com',altemail:'',location:'',spouse:'Sapna',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M115',name:'Manjari Valluri',phone:'(609) 651-7734',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M116',name:'Manjula Vellingiri',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M117',name:'Manjusha Harshraj Nainar',phone:'(267) 770-1069',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M118',name:'Manoj Shambharkar',phone:'',email:'manojsam@gmail.com',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M119',name:'Meenakshi Rojal Bhadke',phone:'',email:'',altemail:'',location:'CT',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M120',name:'Megha Vijay Tabhane',phone:'(201) 204-8109',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M121',name:'Milind Awasarmol',phone:'(732) 822-9348',email:'',altemail:'',location:'',spouse:'Nandita',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M122',name:'Milind Thamke',phone:'(551) 689-2963',email:'thamke@gmail.com',altemail:'',location:'',spouse:'Vinaya',dues:'',coordinator:'Ninad Khade',comments:'waiting for employee match',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M123',name:'Milind Wankhede',phone:'(848) 391-7380',email:'milind.wankhede@gmail.com',altemail:'',location:'',spouse:'Pallavi',dues:'',coordinator:'Ninad Khade',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M124',name:'Mohan Sakhya',phone:'(267) 575-2510',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M125',name:'Molly Chowdhury',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M126',name:'Mrunali Mahendra Rajwade',phone:'(607) 542-7463',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M127',name:'Nagesh Pawar',phone:'',email:'nageshspawar@gmail.com',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M128',name:'Namdev Togre',phone:'',email:'togrenam@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M129',name:'Nandita G Pantawane',phone:'',email:'nandita.pantawane@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M130',name:'Nandita Milind Awasarmol',phone:'(732) 822-9348',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M131',name:'Naresh Brsagade',phone:'',email:'bnaresh@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M132',name:'Nayan Meshram',phone:'(332) 254-4681',email:'',altemail:'',location:'',spouse:'Shraddha',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M133',name:'Neha Bendale',phone:'(551) 229-5734',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M134',name:'Neha Ghate',phone:'(201) 356-7224',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M135',name:'Nikam Family',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M136',name:'Nikhil Ganvir',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M137',name:'Nikhil Lokhande',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M138',name:'Nilay Mahedia',phone:'(602) 680-8780',email:'',altemail:'',location:'',spouse:'Monali',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M139',name:'Nilesh Kadale',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M140',name:'Nilesh Meshram',phone:'(212) 834-4912',email:'nilesh.meshram@gmail.com',altemail:'',location:'',spouse:'Gauri',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M141',name:'Nilesh N Meshram',phone:'(212) 834-4912',email:'nilesh.meshram@gmail.com',altemail:'',location:'',spouse:'Gauri',dues:'Yes',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M142',name:'Nimisha Sunil Manjrekar',phone:'(314) 728-8451',email:'drnimishamanjrekar@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M143',name:'Ninad Khade',phone:'(718) 427-1071',email:'ninadkhade@gmail.com',altemail:'',location:'',spouse:'Swapnali',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M144',name:'Niraj Londhe',phone:'(720) 616-8122',email:'niraj.londhe@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M145',name:'Nirmal Daroch',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M146',name:'Nishant Kamble',phone:'(917) 935-3344',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M147',name:'Nishat Imam',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M148',name:'Nitin D Shinde',phone:'(732) 810-5585',email:'nitinshinde1@hotmail.com',altemail:'',location:'',spouse:'Varsha',dues:'Yes',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M149',name:'Nitin Dhaktode',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M150',name:'Nitin Nikalje',phone:'',email:'nj_nikalje@yahoo.com',altemail:'',location:'Dallas, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M151',name:'Nitin Shinde',phone:'(732) 810-5585',email:'',altemail:'',location:'',spouse:'Varsha',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M152',name:'Nitin Suryatale',phone:'(718) 208-5287',email:'nitin0105@gmail.com',altemail:'',location:'',spouse:'Karuna',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M153',name:'Om Baghel',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M154',name:'Pallavi Yogesh Ramteke',phone:'(732) 822-7948',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M155',name:'Pankaj Bhagat',phone:'',email:'pankaj2dhiraj@outlook.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M156',name:'Pankaj Chawhan',phone:'',email:'pankaj.chawhan77@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M157',name:'Pankaj Dahat',phone:'(646) 617-8466',email:'pankaj.da.07@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M158',name:'Pankaj Kamble',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M159',name:'Pankaj Meshram',phone:'',email:'pankaj.meshram@gmail.com',altemail:'',location:'Denver, CO',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M160',name:'Pinakin Saresa',phone:'(248) 701-1395',email:'pinakin129@gmail.com',altemail:'',location:'',spouse:'Indu',dues:'',coordinator:'Ninad Khade',comments:'waiting for employee match',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M161',name:'Pinder Paul',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M162',name:'Piyush Modak',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M163',name:'Poorvesh Dongre',phone:'(540) 449-9072',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M164',name:'Prachi Patankar',phone:'(917) 415-0659',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M165',name:'Prachi Shahare',phone:'(646) 361-1985',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M166',name:'Pradeep Mahale',phone:'(201) 936-0537',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M167',name:'Pradhnya Shahushakti Bhalerao',phone:'(732) 491-3266',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M168',name:'Prafull Narnavre',phone:'(732) 895-1594',email:'prafull.narnavre@gmail.com',altemail:'',location:'',spouse:'Pradnya',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M169',name:'Prajakta Borkar Patil',phone:'',email:'prajaktaborkar2701@gmail.com',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M170',name:'Prajakta Pohekar',phone:'(256) 604-0741',email:'drprajaktapohekar@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'Milind Awasarmol',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M171',name:'Prajwal Thool',phone:'(862) 485-4200',email:'prajwalgthool@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M172',name:'Prakash Punekar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M173',name:'Prakash Rao',phone:'',email:'',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M174',name:'Pranita Sujeet Shende',phone:'(201) 888-4823',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M175',name:'Prashant Deogade',phone:'(484) 716-8450',email:'',altemail:'',location:'',spouse:'Mangala',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M176',name:'Prashant M Deogade',phone:'(484) 716-8450',email:'prashant.deogade@outlook.com',altemail:'',location:'',spouse:'Mangala',dues:'Yes',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M177',name:'Prateek Fulzele',phone:'',email:'prateekf@yahoo.com',altemail:'',location:'Austin, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M178',name:'Pratibha Vikas Khaire',phone:'(484) 649-0090',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M179',name:'Praveen Lokhande',phone:'',email:'praveen_al@yahoo.com',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M180',name:'Pravin Kamble',phone:'(917) 514-0765',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M181',name:'Preeti Shekhar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M182',name:'Prithvi Khade',phone:'',email:'prithvi.khade@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M183',name:'Priti Rangnath Bhalerao',phone:'(443) 570-4068',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M184',name:'Priya Bansode',phone:'(518) 421-7153',email:'priyavilasumass@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M185',name:'Priya Manoj Moon',phone:'(732) 662-8719',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M186',name:'Puja Damu Dethe',phone:'',email:'pujadhete10@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M187',name:'Rahul Hiwale',phone:'',email:'rhiwale@yahoo.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M188',name:'Rahul Ramraje',phone:'919867234523',email:'rahul.ramraje.it@gmail.com',altemail:'',location:'Los Angeles, CA',spouse:'',dues:'',coordinator:'Laxmikant Rode',comments:'Acknowledged message. Awaiting contribution',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M189',name:'Raili Roy',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M190',name:'Raj Somkuwar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M191',name:'Rajaram Gaikwad',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M192',name:'Rajdeep Dongre',phone:'',email:'d_rajdeep@yahoo.com',altemail:'',location:'Dallas, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M193',name:'Rajesh Banga',phone:'',email:'email@bangavet.com',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M194',name:'Rajesh Kumar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M195',name:'Rajiv Awacharmal',phone:'(551) 268-8625',email:'',altemail:'',location:'',spouse:'Mayuri',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M196',name:'Raju Kamble',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M197',name:'Rakshit Kamble',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M198',name:'Ram Kumar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M199',name:'Rambabu Gautam',phone:'(201) 673-0401',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M200',name:'Ranbir Kumar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M201',name:'Rangnath Bhalerao',phone:'',email:'rangnathb@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M202',name:'Rao Rampilla',phone:'(646) 256-0896',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M203',name:'Ravi Moluguri',phone:'(732) 910-7870',email:'ravi.moluguri@gmail.com',altemail:'',location:'',spouse:'',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M204',name:'Reejo Thomas',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M205',name:'Reema Hussain',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M206',name:'Reena Tushar Kamble',phone:'(201) 850-7513',email:'tushar.m.kamble@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M207',name:'Rijul Bhagat',phone:'(973) 444-1375',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M208',name:'Rijul Damodar Bhagat',phone:'',email:'rijulbhagat@yahoo.co.in',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M209',name:'Rinesh Lokhande',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M210',name:'Rita Ravi Badge',phone:'(732) 882-3373',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M211',name:'Ritesh G',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M212',name:'Ritika Sidhartha',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M213',name:'Rohit Sagar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M214',name:'Rojal Bhadke',phone:'',email:'bhadkerojal@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M215',name:'Rupali Jitendra Shahare',phone:'(201) 238-5043',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M216',name:'Sachin Gajghate',phone:'(443) 845-1280',email:'sgajghate@gmail.com',altemail:'',location:'',spouse:'',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M217',name:'Sachin Magar',phone:'(416) 419-1509',email:'magarsachin@gmail.com',altemail:'',location:'',spouse:'',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M218',name:'Sachin Tambe',phone:'',email:'sachin_tambe2000@yahoo.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M219',name:'Samir Chincholikar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M220',name:'Samir Shambharkar',phone:'',email:'samirshambharkar@gmail.com',altemail:'',location:'Washington DC',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M221',name:'Sandeep Mohite',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M222',name:'Sandesh Nagrale',phone:'(513) 501-6976',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M223',name:'Sandesh Nagrare',phone:'(513) 501-6976',email:'sandesh.nagrare@gmail.com',altemail:'',location:'',spouse:'Megha',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M224',name:'Sangeetha Ravichandran',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M225',name:'Sangharsh Aglave',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M226',name:'Sanjay Bhagat',phone:'(781) 975-6242',email:'',altemail:'',location:'Boston',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M227',name:'Sanjay Ranaware',phone:'(609) 937-8953',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M228',name:'Sanjeeta (guru) Mukherjee',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M229',name:'Santosh Kamble',phone:'(973) 570-6226',email:'sankam50027@yahoo.com',altemail:'',location:'',spouse:'Prajakta',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M230',name:'Sarala Shanmugam',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M231',name:'Sarang Bhagat',phone:'',email:'sarangbhagat@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M232',name:'Satish Pagare',phone:'',email:'rspagare209@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M233',name:'Saurabh Borkar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M234',name:'Saurabh Palaspagar',phone:'(862) 452-6077',email:'palaspagar.saurabh@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'Laxmikant Rode',comments:'Moved to Georgia - new job',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M235',name:'Seema Ajay Thool',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M236',name:'Seema Lanjewar',phone:'',email:'seema_lanjewar@yahoo.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M237',name:'Shahushakti Bhalerao',phone:'',email:'shahushakti@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M238',name:'Shailesh Bondade',phone:'',email:'',altemail:'',location:'Washington DC',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M239',name:'Shailesh Bondale',phone:'(305) 542-7858',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M240',name:'Shailesh Kumar Pillewar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M241',name:'Sharad Sasane',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M242',name:'Sheetal Anand Waghmare',phone:'(609) 865-7243',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M243',name:'Shefali Shashank Vaidya',phone:'(678) 836-4120',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M244',name:'Shireen Nagdive',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M245',name:'Shirish Dhale',phone:'(929) 257-7687',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M246',name:'Shrushti Alone',phone:'',email:'srushtialone95@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M247',name:'Shylaja Siddappa',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M248',name:'Siddharth Babre',phone:'(469) 236-2827',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'Core',sources:'',notes:'⚠ No email'},
+  {id:'M249',name:'Sidharth Fulmali',phone:'(551) 697-5430',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M250',name:'Sneha Vishwajit Ilamkar',phone:'(203) 543-6706',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M251',name:'Snehal A Ukey',phone:'(215) 512-1027',email:'snehalcbs@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M252',name:'Snehal Fulzele',phone:'',email:'snehal.fulzele@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M253',name:'Snehal Ukey',phone:'(215) 512-1027',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M254',name:'Sonali Sumedh Dandge',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M255',name:'Sonawane Pramod',phone:'(276) 356-1329',email:'psonawane89@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M256',name:'Soni Awadh',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M257',name:'Sorte Sagar',phone:'(540) 385-9722',email:'sagar.sorte19@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M258',name:'Soumya Shankar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M259',name:'Stephen Vattapara',phone:'',email:'',altemail:'',location:'Ohio',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M260',name:'Subhash Gedam',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M261',name:'Suganya Subbarayan',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M262',name:'Suhas Vaidya',phone:'(315) 796-0427',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M263',name:'Sujata Deven Wahane',phone:'(862) 368-2729',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M264',name:'Sujatha Ramni',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M265',name:'Sukanya Nagrale',phone:'(979) 709-0543',email:'nagralesukanya@ymail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M266',name:'Sukhwinder Singh',phone:'',email:'metrotruckinglineinc@gmail.com',altemail:'',location:'Houston, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M267',name:'Sumathi Srinivasan',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M268',name:'Sumend Selma Wankhade',phone:'(201) 852-0485',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M269',name:'Sumend Wankhade',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M270',name:'Suraj Hadke',phone:'(484) 633-4007',email:'rsuraj21@gmail.com',altemail:'',location:'',spouse:'Swati',dues:'No',coordinator:'Nilesh Meshram',comments:'No response to messages, have asked to excuse from membership',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M271',name:'Suraj Yengde',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M272',name:'Sushma Barsagade',phone:'',email:'sushma21barsagade@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M273',name:'Swapnali Ninad Khade',phone:'(718) 427-1071',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M274',name:'Swapnil Jawale',phone:'',email:'swapnil01jawale@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M275',name:'Swapnil Ukey',phone:'',email:'swapnilukey@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M276',name:'Swati Arul Somkuvar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M277',name:'Swati Sawant',phone:'(617) 817-7017',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M278',name:'Takshak Chahande',phone:'',email:'takshak@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M279',name:'Tejal Suraj',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M280',name:'Tejpal Thool',phone:'',email:'tejpal@optonline.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M281',name:'Thenmozhi Saravanan',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M282',name:'Trushar Padwekar',phone:'(332) 201-9324',email:'trusharpadwekar3@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M283',name:'Trushar Pawdekar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M284',name:'Tushar Dipti Thool',phone:'(646) 610-9365',email:'',altemail:'',location:'',spouse:'Dipti',dues:'Yes',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M285',name:'Tushar Kamble',phone:'(201) 850-7513',email:'tushar.m.kamble@gmail.com',altemail:'',location:'',spouse:'Reena',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M286',name:'Tushar Thool',phone:'(646) 610-9365',email:'tusharthool@yahoo.com',altemail:'',location:'',spouse:'Dipti',dues:'Yes',coordinator:'',comments:'',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M287',name:'Umanathan Shanmugam',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M288',name:'Umang Kumar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M289',name:'Urmi Mukerjee',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M290',name:'Usha Amarnath',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M291',name:'Vaibhav Jadhav',phone:'(205) 218-3120',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M292',name:'Vaibhav Kamble',phone:'(201) 647-5061',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M293',name:'Vaishnavi Arunkumar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M294',name:'Varsha Gawande',phone:'',email:'p_gawande@hotmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M295',name:'Varsha Hitesh Dhakne',phone:'(347) 301-9374',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M296',name:'Varshika Srinivasavaradhan',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M297',name:'Vijay Sukhadeve',phone:'',email:'vihang1301@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M298',name:'Vijay Tabhane',phone:'(201) 204-8109',email:'vtabhane@hotmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M299',name:'Vijin Gedam',phone:'(646) 272-8587',email:'vijin_gedam2000@yahoo.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M300',name:'Vikas Khaire',phone:'(484) 374-7865',email:'vkhaire@gmail.com',altemail:'',location:'',spouse:'Pratibha',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'✓ Complete'},
+  {id:'M301',name:'Vinaya Milind Thamke',phone:'(551) 689-2963',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M302',name:'Vinod Manwatkar',phone:'',email:'vinodmanwatkar@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M303',name:'Vishal Jadhav',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M304',name:'Vishal Shinde',phone:'(318) 243-5220',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M305',name:'Vishwajit Ilamkar',phone:'(203) 543-6706',email:'ilamkarvishwajit@gmail.com',altemail:'',location:'',spouse:'Sneha',dues:'',coordinator:'Laxmikant Rode',comments:'Will contribute in the next few months',membership:'Core',sources:'',notes:'✓ Complete'},
+  {id:'M306',name:'Vishwak Sangare',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M307',name:'Vishwas Wakdikar',phone:'',email:'',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ Missing contact info'},
+  {id:'M308',name:'Vivekanand Chavan',phone:'',email:'mailbox.com1@gmail.com',altemail:'',location:'',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M309',name:'Waghmare Upali Ashwajit',phone:'(571) 525-8962',email:'',altemail:'',location:'Washington DC',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No email'},
+  {id:'M310',name:'Yogesh Karankal',phone:'',email:'coolyogs@gmail.com',altemail:'',location:'Dallas, TX',spouse:'',dues:'',coordinator:'',comments:'',membership:'non-Core',sources:'',notes:'⚠ No phone'},
+  {id:'M311',name:'Yogesh Ramteke',phone:'(732) 822-7948',email:'yogesh.ramteke@gmail.com',altemail:'',location:'',spouse:'Pallavi',dues:'Yes',coordinator:'Ninad Khade',comments:'',membership:'Core',sources:'',notes:'✓ Complete'}
+];
+
+    // ===== STATE =====
+    let currentRole    = 'attendee';
+    let selectedEvent  = null;
+    let currentRsvp    = {};
+    let editingEventId = null;
+
+    // ===== INIT =====
+    window.addEventListener('DOMContentLoaded', () => {
+      DB.load();
+      // Seed master list only on very first load (no members stored yet)
+      if (!DB.members.length) {
+        DB.members = SAMPLE_MEMBERS.map(m => ({...m}));
+        DB.save();
+      }
+      if (!DB.events.length) {
+        createSampleEvent();
+        DB.save();
+      }
+      loadAttendeeView();
+    });
+
+    function createSampleEvent() {
+      DB.events.push({
+        id: 'EVT-001',
+        name: 'Ambedkar Jayanti 2026',
+        date: '2026-04-14',
+        venue: 'Community Hall, NJ',
+        rsvpEnabled: true,
+        fields: {name: true, phone: true, student: true},
+        customQuestions: [
+          {id:'q1', text:'Will you attend?',      type:'radio',    options:['Yes','No'],              required:true},
+          {id:'q2', text:'How many adults?',       type:'number',   options:[],                        required:false},
+          {id:'q3', text:'How many children?',     type:'number',   options:[],                        required:false},
+          {id:'q4', text:'Volunteer activities',   type:'checkbox', options:['Setup','Food','Cleanup'], required:false},
+        ],
+        volunteerActivities: ['Setup','Food','Cleanup']
+      });
+    }
+
+    function resetDemoData() {
+      if (!confirm('This will clear all event/RSVP data and restore the full master member list. Continue?')) return;
+      localStorage.removeItem('amb_events');
+      localStorage.removeItem('amb_rsvps');
+      DB.events  = [];
+      DB.rsvps   = [];
+      DB.members = SAMPLE_MEMBERS.map(m => ({...m}));
+      createSampleEvent();
+      DB.save();
+      alert('✓ Demo data restored!\n' + DB.members.length + ' members loaded.');
+      switchRole('attendee');
+      loadAttendeeView();
+    }
+
+    function loadMasterDefaults() {
+      if (!confirm('Replace current member list with the built-in Ambedkar master list (' + SAMPLE_MEMBERS.length + ' members)?\nThis cannot be undone.')) return;
+      DB.members = SAMPLE_MEMBERS.map(m => ({...m}));
+      DB.save();
+      loadMembersList();
+      alert('✓ Master list loaded: ' + DB.members.length + ' members');
+    }
+
+
+    // ===== ROLE SWITCHING =====
+    function switchRole(role) {
+      currentRole = role;
+      document.getElementById('attendeeView').classList.toggle('hidden', role !== 'attendee');
+      document.getElementById('adminView').classList.toggle('hidden', role !== 'admin');
+      document.getElementById('roleAttendee').classList.toggle('btn-secondary', role !== 'attendee');
+      document.getElementById('roleAdmin').classList.toggle('btn-secondary', role !== 'admin');
+      
+      if (role === 'attendee') loadAttendeeView();
+      if (role === 'admin') {
+        const firstBtn = document.querySelector('.tabs button');
+        switchAdminTab('createEvent', firstBtn);
+      }
+    }
+
+    // Close modal on backdrop click
+    document.addEventListener('click', function(e) {
+      const modal = document.getElementById('memberModal');
+      if (e.target === modal) closeMemberModal();
+    });
+
+    // ===== ATTENDEE FUNCTIONS =====
+    function loadAttendeeView() {
+      const enabledEvents = DB.events.filter(e => e.rsvpEnabled);
+      const html = enabledEvents.map(e => `
+        <div class="event-card" onclick="selectEvent('${e.id}')">
+          <h4>${e.name}</h4>
+          <p>📅 ${e.date} | 📍 ${e.venue}</p>
+        </div>
+      `).join('');
+      
+      document.getElementById('eventList').innerHTML = html || '<p style="color: #999;">No events available</p>';
+      document.getElementById('eventSelectionStep').classList.remove('hidden');
+      document.getElementById('rsvpFormStep').classList.add('hidden');
+    }
+
+    function selectEvent(eventId) {
+      selectedEvent = DB.events.find(e => e.id === eventId);
+      currentRsvp = {};
+      document.getElementById('eventSelectionStep').classList.add('hidden');
+      document.getElementById('rsvpFormStep').classList.remove('hidden');
+      renderDynamicFields();
+      attendeeGoToStep(1);
+    }
+
+    function searchAttendees() {
+      const query = document.getElementById('nameSearch').value.trim().toLowerCase();
+      const container = document.getElementById('searchResults');
+      
+      if (query.length < 2) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const results = DB.members.filter(m => 
+        (m.name || '').toLowerCase().includes(query) ||
+        ((m.phone || '').replace(/\D/g, '').endsWith(query.replace(/\D/g,'').slice(-4)) && query.replace(/\D/g,'').length >= 4)
+      ).slice(0, 8);
+
+      container.innerHTML = results.map(m => `
+        <div style="background: #e8f0ff; padding: 10px; border-radius: 4px; margin-bottom: 8px; cursor: pointer;" onclick="selectMember('${(m.name||'').replace(/'/g,"\\'")}', '${(m.phone||'').replace(/'/g,"\\'")}')">
+          <strong>${m.name}</strong>
+          ${m.phone ? `<br><span style="font-size: 12px; color: #666;">📞 ${m.phone}</span>` : ''}
+          ${m.location ? `<span style="font-size: 11px; color: #999;"> · 📍 ${m.location}</span>` : ''}
+        </div>
+      `).join('');
+    }
+
+    function selectMember(name, phone) {
+      document.getElementById('manualName').value = name;
+      document.getElementById('manualPhone').value = phone.replace(/\D/g, '');
+      document.getElementById('searchResults').innerHTML = '';
+      document.getElementById('nameSearch').value = '';
+    }
+
+    function renderDynamicFields() {
+      const event = selectedEvent;
+      let html = '';
+
+      // Will you attend
+      const attendQuestion = event.customQuestions.find(q => q.text === 'Will you attend?');
+      if (attendQuestion) {
+        html += `
+          <div class="form-group">
+            <label>${attendQuestion.text} <span style="color: #e53935; font-size: 12px;">*required</span></label>
+            <div class="checkbox-group">
+              <label><input type="radio" name="attend" value="yes" onchange="onAttendanceChange()"> Yes</label>
+              <label><input type="radio" name="attend" value="no" onchange="onAttendanceChange()"> No</label>
+            </div>
+          </div>
+        `;
+      }
+
+      // Student status — ALWAYS show, per requirements
+      if (event.fields.student !== false) {
+        html += `
+          <div class="form-group">
+            <label>Are you a student? 🎓</label>
+            <div class="checkbox-group">
+              <label><input type="radio" name="student" value="no"> No</label>
+              <label><input type="radio" name="student" value="yes"> Yes — I am a student</label>
+            </div>
+          </div>
+        `;
+      }
+
+      // Adults
+      const adultsQuestion = event.customQuestions.find(q => q.text === 'How many adults?');
+      if (adultsQuestion) {
+        html += `
+          <div class="form-group" id="adultsGroup" style="display: none;">
+            <label>${adultsQuestion.text}</label>
+            <select id="adults">
+              <option value="">Select</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5+</option>
+            </select>
+          </div>
+        `;
+      }
+
+      // Children
+      const childrenQuestion = event.customQuestions.find(q => q.text === 'How many children?');
+      if (childrenQuestion) {
+        html += `
+          <div class="form-group" id="childrenGroup" style="display: none;">
+            <label>${childrenQuestion.text}</label>
+            <select id="children">
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5+</option>
+            </select>
+          </div>
+        `;
+      }
+
+      // Volunteer
+      const volunteerQuestion = event.customQuestions.find(q => q.text === 'Volunteer activities');
+      if (volunteerQuestion) {
+        html += `
+          <div class="form-group" id="volunteerGroup" style="display: none;">
+            <label>${volunteerQuestion.text}</label>
+            <div class="checkbox-group">
+              ${volunteerQuestion.options.map(opt => `
+                <label><input type="checkbox" name="volunteer" value="${opt}"> ${opt}</label>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      document.getElementById('dynamicFields').innerHTML = html;
+    }
+
+    function onAttendanceChange() {
+      const attend = document.querySelector('input[name="attend"]:checked')?.value;
+      const show = attend === 'yes';
+      const ag = document.getElementById('adultsGroup');
+      const cg = document.getElementById('childrenGroup');
+      const vg = document.getElementById('volunteerGroup');
+      if (ag) ag.style.display = show ? 'block' : 'none';
+      if (cg) cg.style.display = show ? 'block' : 'none';
+      if (vg) vg.style.display = show ? 'block' : 'none';
+    }
+
+    function attendeeGoToStep(step) {
+      document.getElementById('rsvpStep1').classList.toggle('hidden', step !== 1);
+      document.getElementById('rsvpStep2').classList.toggle('hidden', step !== 2);
+      document.getElementById('rsvpStep3').classList.toggle('hidden', step !== 3);
+
+      // Update indicators
+      document.getElementById('stepInd1').classList.toggle('active', step === 1);
+      document.getElementById('stepInd2').classList.toggle('active', step === 2);
+      document.getElementById('stepInd3').classList.toggle('active', step === 3);
+
+      if (step === 2) {
+        const name = document.getElementById('manualName').value.trim();
+        const phone = document.getElementById('manualPhone').value.trim();
+        const code = document.getElementById('countryCode').value;
+
+        if (!name || !phone) {
+          alert('Please enter name and phone');
+          return;
+        }
+
+        currentRsvp = {
+          id: 'RSVP-' + Date.now(),
+          name: name,
+          phone: code + ' ' + phone,
+          eventId: selectedEvent.id,
+          answers: {}
+        };
+      } else if (step === 3) {
+        // Validate attendance
+        const attendVal = document.querySelector('input[name="attend"]:checked')?.value;
+        if (!attendVal) {
+          alert('Please answer "Will you attend?"');
+          return;
+        }
+
+        currentRsvp.attend = attendVal;
+        currentRsvp.student = document.querySelector('input[name="student"]:checked')?.value || 'no';
+        currentRsvp.adults = document.getElementById('adults')?.value || '0';
+        currentRsvp.children = document.getElementById('children')?.value || '0';
+        currentRsvp.volunteer = Array.from(document.querySelectorAll('input[name="volunteer"]:checked')).map(x => x.value);
+
+        submitRsvp();
+      }
+
+      window.scrollTo(0, 0);
+    }
+
+    function submitRsvp() {
+      DB.rsvps.push(currentRsvp);
+      DB.save();
+
+      const qrId = currentRsvp.id;
+      const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrId)}&color=0066cc&bgcolor=ffffff`;
+      document.getElementById('confirmQR').src = qrImg;
+      document.getElementById('confirmQR').dataset.qrUrl = qrImg;
+      document.getElementById('confirmQR').dataset.qrId = qrId;
+
+      const studentLabel = currentRsvp.student === 'yes' ? ' <span class="student-badge">🎓 Student</span>' : '';
+      let summary = `
+        <strong>${currentRsvp.name}</strong>${studentLabel}<br>
+        Phone: ${currentRsvp.phone}<br>
+        Event: ${selectedEvent.name}<br>
+        Attending: ${currentRsvp.attend === 'yes' ? '✅ Yes' : '❌ No'}
+        ${currentRsvp.attend === 'yes' ? `<br>Adults: ${currentRsvp.adults || '—'} | Children: ${currentRsvp.children || '0'}` : ''}
+      `;
+      document.getElementById('confirmSummary').innerHTML = summary;
+
+      window.currentRsvpData = currentRsvp;
+    }
+
+    function downloadQR() {
+      const qrUrl = document.getElementById('confirmQR').dataset.qrUrl;
+      const link = document.createElement('a');
+      link.href = qrUrl.replace('size=300x300', 'size=500x500');
+      link.download = `RSVP-${currentRsvp.name.replace(/\s+/g, '-')}-QR.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function backToEventSelect() {
+      loadAttendeeView();
+    }
+
+    // ===== ADMIN FUNCTIONS =====
+    function switchAdminTab(tab, btn) {
+      document.querySelectorAll('[id$="Tab"]').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tab + 'Tab').classList.remove('hidden');
+      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+
+      if (tab === 'eventsList') loadEventsList();
+      if (tab === 'members') loadMembersList();
+      if (tab === 'checkin') {
+        loadCheckInEvents();
+        document.getElementById('qrScanInput').focus();
+      }
+      if (tab === 'rsvpList') loadRsvpList();
+      if (tab === 'expenses') loadExpenseEvents();
+    }
+
+    function addVolunteerActivity() {
+      const input = document.getElementById('newVolunteerActivity');
+      const activity = input.value.trim();
+
+      if (!activity) {
+        alert('Please enter an activity name');
+        return;
+      }
+
+      const div = document.createElement('div');
+      div.className = 'setting-item';
+      div.innerHTML = `
+        <span>${activity}</span>
+        <button class="btn btn-small btn-danger" onclick="this.parentElement.remove()">Remove</button>
+      `;
+
+      document.getElementById('volunteerActivitiesList').appendChild(div);
+      input.value = '';
+    }
+
+    function getVolunteerActivities() {
+      const activities = [];
+      document.querySelectorAll('#volunteerActivitiesList .setting-item').forEach(el => {
+        activities.push(el.querySelector('span').innerText);
+      });
+      return activities;
+    }
+
+    function addCustomQuestion() {
+      const text = document.getElementById('newQuestionText').value.trim();
+      const type = document.getElementById('newQuestionType').value;
+      const options = document.getElementById('newQuestionOptions').value.split(',').map(o => o.trim()).filter(o => o);
+
+      if (!text) {
+        alert('Please enter question text');
+        return;
+      }
+
+      const q = {
+        id: 'q-' + Date.now(),
+        text: text,
+        type: type,
+        options: options,
+        required: false
+      };
+
+      renderQuestion(q);
+      document.getElementById('newQuestionText').value = '';
+      document.getElementById('newQuestionOptions').value = '';
+    }
+
+    function renderQuestion(q) {
+      const container = document.getElementById('questionsContainer');
+      if (!container.querySelector(`[data-qid="${q.id}"]`)) {
+        const div = document.createElement('div');
+        div.setAttribute('data-qid', q.id);
+        div.className = 'setting-item';
+        div.innerHTML = `
+          <div>
+            <strong>${q.text}</strong><br>
+            <span style="font-size: 11px; color: #666;">${q.type} ${q.options.length ? '(' + q.options.join(', ') + ')' : ''}</span>
+          </div>
+          <button class="btn btn-small btn-danger" onclick="this.parentElement.remove()">✕</button>
+        `;
+        container.appendChild(div);
+      }
+    }
+
+    function saveEvent() {
+      const name = document.getElementById('adminEventName').value.trim();
+      const date = document.getElementById('adminEventDate').value;
+      const venue = document.getElementById('adminEventVenue').value.trim();
+      const rsvpEnabled = document.getElementById('rsvpEnabled').checked;
+      const volunteerActivities = getVolunteerActivities();
+
+      if (!name || !date) {
+        alert('Please fill event name and date');
+        return;
+      }
+
+      const questions = Array.from(document.querySelectorAll('#questionsContainer [data-qid]')).map(el => {
+        const qid = el.getAttribute('data-qid');
+        return {id: qid, text: el.querySelector('strong').innerText, type: 'text', options: []};
+      });
+
+      const ev = {
+        id: editingEventId || 'EVT-' + Date.now(),
+        name: name,
+        date: date,
+        venue: venue,
+        rsvpEnabled: rsvpEnabled,
+        fields: {
+          name: true,
+          phone: document.getElementById('field_phone').checked,
+          student: document.getElementById('field_student').checked
+        },
+        customQuestions: questions.length ? questions : DB.events.find(e => e.id === editingEventId)?.customQuestions || [],
+        volunteerActivities: volunteerActivities
+      };
+
+      const idx = DB.events.findIndex(e => e.id === ev.id);
+      if (idx > -1) {
+        DB.events[idx] = ev;
+      } else {
+        DB.events.push(ev);
+      }
+
+      DB.save();
+      alert('✓ Event saved!');
+      resetEventForm();
+      loadEventsList();
+    }
+
+    function resetEventForm() {
+      editingEventId = null;
+      document.getElementById('adminEventName').value = '';
+      document.getElementById('adminEventDate').value = '';
+      document.getElementById('adminEventVenue').value = '';
+      document.getElementById('rsvpEnabled').checked = true;
+      document.getElementById('volunteerActivitiesList').innerHTML = '';
+      document.getElementById('questionsContainer').innerHTML = '';
+      document.getElementById('eventFormTitle').innerText = 'Create New Event';
+      document.getElementById('newVolunteerActivity').value = '';
+    }
+
+    function loadEventsList() {
+      const html = DB.events.map(e => `
+        <div class="event-card">
+          <h4>${e.name}</h4>
+          <p>📅 ${e.date} | 📍 ${e.venue}</p>
+          <p style="margin-top: 8px;">
+            <span style="background: ${e.rsvpEnabled ? '#4caf50' : '#999'}; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px;">
+              ${e.rsvpEnabled ? '✓ RSVP Enabled' : '✗ RSVP Disabled'}
+            </span>
+          </p>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button class="btn btn-small" onclick="editEvent('${e.id}')">Edit</button>
+            <button class="btn btn-small btn-danger" onclick="deleteEvent('${e.id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('adminEventsList').innerHTML = html || '<p>No events created</p>';
+    }
+
+    function editEvent(id) {
+      const ev = DB.events.find(e => e.id === id);
+      if (!ev) return;
+
+      editingEventId = id;
+      document.getElementById('adminEventName').value = ev.name;
+      document.getElementById('adminEventDate').value = ev.date;
+      document.getElementById('adminEventVenue').value = ev.venue;
+      document.getElementById('rsvpEnabled').checked = ev.rsvpEnabled;
+      document.getElementById('field_phone').checked = ev.fields.phone;
+      document.getElementById('field_student').checked = ev.fields.student;
+
+      document.getElementById('volunteerActivitiesList').innerHTML = '';
+      (ev.volunteerActivities || []).forEach(activity => {
+        const div = document.createElement('div');
+        div.className = 'setting-item';
+        div.innerHTML = `
+          <span>${activity}</span>
+          <button class="btn btn-small btn-danger" onclick="this.parentElement.remove()">Remove</button>
+        `;
+        document.getElementById('volunteerActivitiesList').appendChild(div);
+      });
+
+      document.getElementById('questionsContainer').innerHTML = '';
+      ev.customQuestions.forEach(q => renderQuestion(q));
+
+      document.getElementById('eventFormTitle').innerText = 'Edit Event';
+      const firstBtn = document.querySelector('.tabs button');
+      switchAdminTab('createEvent', firstBtn);
+    }
+
+    function deleteEvent(id) {
+      if (!confirm('Delete this event?')) return;
+      DB.events = DB.events.filter(e => e.id !== id);
+      DB.save();
+      loadEventsList();
+    }
+
+    function loadRsvpList() {
+      const html = DB.rsvps.map(r => {
+        const ev = DB.events.find(e => e.id === r.eventId);
+        const studentLabel = r.student === 'yes' ? '<span class="student-badge">🎓</span>' : '—';
+        return `
+          <tr>
+            <td>${r.name}</td>
+            <td>${r.phone}</td>
+            <td style="text-align:center;">${studentLabel}</td>
+            <td style="text-align:center;">${r.adults || '—'}</td>
+            <td style="text-align:center;">${r.children || '0'}</td>
+            <td>${ev?.name || 'Unknown'}</td>
+            <td>${ev?.date || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('rsvpListBody').innerHTML = html || '<tr><td colspan="7" style="text-align:center;color:#999;">No RSVPs</td></tr>';
+    }
+
+    // ===== MEMBER MANAGEMENT =====
+
+    // Compute auto notes status
+    function computeNotes(m) {
+      const hasPhone = m.phone && m.phone.trim();
+      const hasEmail = m.email && m.email.trim();
+      if (hasPhone && hasEmail) return '✓ Complete';
+      if (!hasPhone && !hasEmail) return '⚠ Missing contact info';
+      if (!hasPhone) return '⚠ No phone';
+      return '⚠ No email';
+    }
+
+    // Next auto ID
+    function nextMemberId() {
+      const nums = DB.members.map(m => {
+        const n = parseInt((m.id || '').replace(/\D/g, ''));
+        return isNaN(n) ? 0 : n;
+      });
+      const max = nums.length ? Math.max(...nums) : 0;
+      return `M${String(max + 1).padStart(3, '0')}`;
+    }
+
+    // Open modal for add
+    function openAddMemberModal() {
+      document.getElementById('modalTitle').textContent = 'Add New Member';
+      document.getElementById('modalMemberId').value = '';
+      ['id','name','phone','email','altemail','location','spouse','comments','sources','notes'].forEach(f => {
+        document.getElementById('mf_' + f).value = '';
+      });
+      document.getElementById('mf_dues').value = '';
+      document.getElementById('mf_coordinator').value = '';
+      document.getElementById('mf_membership').value = 'non-Core';
+      document.getElementById('mf_id').placeholder = nextMemberId();
+      document.getElementById('memberModal').style.display = 'block';
+    }
+
+    // Open modal for edit
+    function openEditMemberModal(id) {
+      const m = DB.members.find(x => x.id === id);
+      if (!m) return;
+      document.getElementById('modalTitle').textContent = 'Edit Member';
+      document.getElementById('modalMemberId').value = id;
+      document.getElementById('mf_id').value = m.id || '';
+      document.getElementById('mf_name').value = m.name || '';
+      document.getElementById('mf_phone').value = m.phone || '';
+      document.getElementById('mf_email').value = m.email || '';
+      document.getElementById('mf_altemail').value = m.altemail || '';
+      document.getElementById('mf_location').value = m.location || '';
+      document.getElementById('mf_spouse').value = m.spouse || '';
+      document.getElementById('mf_dues').value = m.dues || '';
+      document.getElementById('mf_coordinator').value = m.coordinator || '';
+      document.getElementById('mf_membership').value = m.membership || 'non-Core';
+      document.getElementById('mf_comments').value = m.comments || '';
+      document.getElementById('mf_sources').value = m.sources || '';
+      document.getElementById('mf_notes').value = m.notes || '';
+      document.getElementById('memberModal').style.display = 'block';
+    }
+
+    function closeMemberModal() {
+      document.getElementById('memberModal').style.display = 'none';
+    }
+
+    function saveMemberModal() {
+      const editingId = document.getElementById('modalMemberId').value;
+      const name = document.getElementById('mf_name').value.trim();
+      if (!name) { alert('Full Name is required'); return; }
+
+      const idInput = document.getElementById('mf_id').value.trim();
+      const newId = idInput || nextMemberId();
+
+      // Check ID collision on add
+      if (!editingId && DB.members.find(m => m.id === newId)) {
+        alert(`ID "${newId}" already exists. Choose a different ID.`); return;
+      }
+
+      const phone = document.getElementById('mf_phone').value.trim();
+      const email = document.getElementById('mf_email').value.trim();
+
+      const memberData = {
+        id: newId,
+        name,
+        phone,
+        email,
+        altemail: document.getElementById('mf_altemail').value.trim(),
+        location: document.getElementById('mf_location').value.trim(),
+        spouse: document.getElementById('mf_spouse').value.trim(),
+        dues: document.getElementById('mf_dues').value,
+        coordinator: document.getElementById('mf_coordinator').value.trim(),
+        membership: document.getElementById('mf_membership').value,
+        comments: document.getElementById('mf_comments').value.trim(),
+        sources: document.getElementById('mf_sources').value.trim(),
+        notes: document.getElementById('mf_notes').value.trim() || computeNotes({phone, email}),
+      };
+
+      if (editingId) {
+        const idx = DB.members.findIndex(m => m.id === editingId);
+        if (idx > -1) DB.members[idx] = memberData;
+      } else {
+        DB.members.push(memberData);
+      }
+
+      DB.save();
+      closeMemberModal();
+      loadMembersList();
+    }
+
+    function deleteMember(id) {
+      const m = DB.members.find(x => x.id === id);
+      if (!confirm(`Delete member "${m?.name || id}"?`)) return;
+      DB.members = DB.members.filter(x => x.id !== id);
+      DB.save();
+      loadMembersList();
+    }
+
+    function loadMembersList() {
+      const query = (document.getElementById('searchMembers')?.value || '').toLowerCase();
+      const filterMship = document.getElementById('filterMembership')?.value || '';
+      const filterDues = document.getElementById('filterDues')?.value || '';
+
+      let filtered = DB.members.filter(m => {
+        const matchText = !query ||
+          (m.name || '').toLowerCase().includes(query) ||
+          (m.phone || '').toLowerCase().includes(query) ||
+          (m.email || '').toLowerCase().includes(query) ||
+          (m.location || '').toLowerCase().includes(query) ||
+          (m.coordinator || '').toLowerCase().includes(query) ||
+          (m.id || '').toLowerCase().includes(query);
+        const matchMship = !filterMship || (m.membership || '') === filterMship;
+        const matchDues = !filterDues || (m.dues || '').toLowerCase() === filterDues.toLowerCase();
+        return matchText && matchMship && matchDues;
+      });
+
+      // Stats bar
+      const total = DB.members.length;
+      const core = DB.members.filter(m => m.membership === 'Core').length;
+      const duesPaid = DB.members.filter(m => (m.dues || '').toLowerCase() === 'yes').length;
+      const complete = DB.members.filter(m => (m.notes || '').includes('✓')).length;
+      const withPhone = DB.members.filter(m => m.phone && m.phone.trim()).length;
+      const withEmail = DB.members.filter(m => m.email && m.email.trim()).length;
+      document.getElementById('memberStatsBar').innerHTML = `
+        <div style="background:#e8f0ff;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;color:#0066cc;">${total} Total</div>
+        <div style="background:#e8f5e9;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;color:#2e7d32;">${core} Core</div>
+        <div style="background:#fff3e0;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;color:#e65100;">${duesPaid} Dues Paid ✓</div>
+        <div style="background:#f3e5f5;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;color:#7b1fa2;">${complete} Complete</div>
+        <div style="background:#e0f2f1;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;color:#00695c;">📞 ${withPhone}</div>
+        <div style="background:#fce4ec;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:700;color:#c62828;">✉️ ${withEmail}</div>
+      `;
+
+      document.getElementById('memberCountLabel').textContent =
+        filtered.length === total ? `Showing all ${total} members` : `Showing ${filtered.length} of ${total} members`;
+
+      const html = filtered.map(m => {
+        const notesColor = (m.notes || '').includes('✓') ? '#2e7d32' : '#e65100';
+        const notesBg = (m.notes || '').includes('✓') ? '#e8f5e9' : '#fff3e0';
+        const coreTag = m.membership === 'Core'
+          ? `<span style="background:#0066cc;color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;white-space:nowrap;">Core</span>`
+          : `<span style="background:#e0e0e0;color:#555;font-size:10px;font-weight:600;padding:2px 6px;border-radius:8px;white-space:nowrap;">non-Core</span>`;
+        const duesTag = (m.dues || '').toLowerCase() === 'yes'
+          ? `<span style="background:#e8f5e9;color:#2e7d32;font-size:10px;font-weight:700;padding:2px 6px;border-radius:8px;">✓ Paid</span>`
+          : `<span style="background:#fafafa;color:#aaa;font-size:10px;padding:2px 6px;border-radius:8px;">—</span>`;
+        const emailDisplay = m.email
+          ? `<a href="mailto:${m.email}" style="color:#0066cc;font-size:12px;word-break:break-all;">${m.email}</a>`
+          : `<span style="color:#ccc;font-size:12px;">—</span>`;
+        const locationDisplay = m.location
+          ? `<span style="font-size:11px;color:#666;">📍 ${m.location}</span>`
+          : '';
+        return `
+          <tr data-id="${m.id}">
+            <td style="font-size:11px;color:#888;font-family:monospace;">${m.id}</td>
+            <td>
+              <strong style="font-size:13px;">${m.name}</strong>
+              ${m.spouse ? `<br><span style="font-size:11px;color:#888;">& ${m.spouse}</span>` : ''}
+              ${locationDisplay}
+              ${m.comments ? `<br><span style="font-size:11px;color:#e65100;font-style:italic;" title="${m.comments}">💬 ${m.comments.length > 30 ? m.comments.slice(0,30)+'…' : m.comments}</span>` : ''}
+            </td>
+            <td style="font-size:13px;white-space:nowrap;">${m.phone || '<span style="color:#ccc;">—</span>'}</td>
+            <td>${emailDisplay}</td>
+            <td style="font-size:12px;color:#555;">${m.location || '<span style="color:#ccc;">—</span>'}</td>
+            <td>${coreTag}</td>
+            <td>${duesTag}</td>
+            <td style="font-size:11px;color:#666;white-space:nowrap;">${m.coordinator || '<span style="color:#ddd;">—</span>'}</td>
+            <td><span style="background:${notesBg};color:${notesColor};font-size:11px;padding:3px 7px;border-radius:8px;white-space:nowrap;">${m.notes || '—'}</span></td>
+            <td style="white-space:nowrap;">
+              <button class="btn btn-small" onclick="openEditMemberModal('${m.id}')" style="background:#2196f3;padding:5px 8px;">✏️</button>
+              <button class="btn btn-small btn-danger" onclick="deleteMember('${m.id}')" style="padding:5px 8px;">🗑️</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('membersList').innerHTML = html ||
+        '<tr><td colspan="10" style="text-align:center;color:#999;padding:30px;">No members match your filters</td></tr>';
+    }
+
+    function filterMembers() {
+      loadMembersList();
+    }
+
+    // ===== CSV IMPORT =====
+    function importMasterCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) { alert('CSV appears empty'); return; }
+
+        // Parse header
+        const headers = parseCSVRow(lines[0]).map(h => h.trim().toLowerCase());
+
+        // Map column names to field keys
+        const colMap = {
+          'id': 'id',
+          'full name': 'name',
+          'phone': 'phone',
+          'email': 'email',
+          'alt email': 'altemail',
+          'location': 'location',
+          'spouse': 'spouse',
+          '2026 dues paid': 'dues',
+          'coordinator': 'coordinator',
+          'comments': 'comments',
+          'membership': 'membership',
+          'sources': 'sources',
+          'notes': 'notes',
+        };
+
+        const fieldOrder = headers.map(h => colMap[h] || null);
+
+        const imported = [];
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue;
+          const vals = parseCSVRow(lines[i]);
+          const obj = {};
+          fieldOrder.forEach((field, idx) => {
+            if (field) obj[field] = (vals[idx] || '').trim();
+          });
+          if (obj.name || obj.id) imported.push(obj);
+        }
+
+        if (!imported.length) { alert('No valid rows found in CSV'); return; }
+
+        const merge = confirm(`Found ${imported.length} members in CSV.\n\nChoose OK to MERGE (update existing + add new)\nChoose Cancel to REPLACE all members`);
+
+        if (merge) {
+          imported.forEach(imp => {
+            const idx = DB.members.findIndex(m => m.id === imp.id);
+            if (idx > -1) {
+              DB.members[idx] = {...DB.members[idx], ...imp};
+            } else {
+              DB.members.push(imp);
+            }
+          });
+        } else {
+          DB.members = imported;
+        }
+
+        DB.save();
+        loadMembersList();
+        alert(`✓ Import complete! ${imported.length} members loaded.`);
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCSVRow(row) {
+      const result = [];
+      let cur = '';
+      let inQuotes = false;
+      for (let i = 0; i < row.length; i++) {
+        const ch = row[i];
+        if (ch === '"') {
+          inQuotes = !inQuotes;
+        } else if (ch === ',' && !inQuotes) {
+          result.push(cur);
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      result.push(cur);
+      return result;
+    }
+
+    // ===== CSV EXPORT =====
+    function exportMasterCSV() {
+      const headers = ['ID','Full Name','Phone','Email','Alt Email','Location','Spouse','2026 Dues Paid','Coordinator','Comments','Membership','Sources','Notes'];
+      const rows = DB.members.map(m => [
+        m.id, m.name, m.phone, m.email, m.altemail, m.location, m.spouse,
+        m.dues, m.coordinator, m.comments, m.membership, m.sources, m.notes
+      ].map(v => {
+        const s = (v || '').toString();
+        return s.includes(',') || s.includes('"') || s.includes('\n') ? `"${s.replace(/"/g, '""')}"` : s;
+      }));
+
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csv], {type: 'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ambedkar_master_list_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ===== CHECK-IN SYSTEM =====
+    function loadCheckInData() {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      if (!eventId) return;
+      loadCheckinList(eventId);
+    }
+
+    function loadCheckInEvents() {
+      const select = document.getElementById('checkinEventSelect');
+      const html = DB.events.map(e => `
+        <option value="${e.id}">${e.name} (${e.date})</option>
+      `).join('');
+      select.innerHTML = `<option value="">Choose event...</option>` + html;
+    }
+
+    function searchRsvpForCheckin() {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      const qrId = document.getElementById('qrScanInput').value.trim();
+
+      if (!eventId) {
+        alert('Please select an event first');
+        document.getElementById('qrScanInput').value = '';
+        return;
+      }
+
+      if (!qrId) {
+        alert('Please enter RSVP ID');
+        return;
+      }
+
+      const rsvp = DB.rsvps.find(r => r.id === qrId && r.eventId === eventId);
+      const result = document.getElementById('checkinResult');
+
+      if (!rsvp) {
+        result.innerHTML = `<div class="alert alert-warning">❌ RSVP ID not found for this event</div>`;
+        document.getElementById('qrScanInput').value = '';
+        return;
+      }
+
+      const checkedIn = rsvp.checkedInAt ? true : false;
+
+      let html = `
+        <div style="background: ${checkedIn ? '#fff3e0' : '#e8f5e9'}; padding: 16px; border-radius: 6px; margin-bottom: 16px; border-left: 4px solid ${checkedIn ? '#ff9800' : '#4caf50'};">
+          <h3 style="color: ${checkedIn ? '#e65100' : '#2e7d32'}; margin: 0 0 14px 0;">
+            ${checkedIn ? '⚠️ Already Checked In' : '✅ Ready to Check In'}
+          </h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Name</label>
+              <input type="text" id="edit_name_${qrId}" value="${rsvp.name}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Phone</label>
+              <input type="tel" id="edit_phone_${qrId}" value="${rsvp.phone}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Attending</label>
+              <select id="edit_attend_${qrId}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+                <option value="yes" ${rsvp.attend === 'yes' ? 'selected' : ''}>Yes</option>
+                <option value="no" ${rsvp.attend === 'no' ? 'selected' : ''}>No</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Student? 🎓</label>
+              <select id="edit_student_${qrId}" style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+                <option value="no" ${(rsvp.student || 'no') === 'no' ? 'selected' : ''}>No</option>
+                <option value="yes" ${rsvp.student === 'yes' ? 'selected' : ''}>Yes — Student</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Adults (guests)</label>
+              <input type="number" id="edit_adults_${qrId}" value="${rsvp.adults || ''}" min="0" max="20"
+                style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+            </div>
+            <div>
+              <label style="font-size: 11px; color: #666; text-transform: uppercase; font-weight: 600;">Children (guests)</label>
+              <input type="number" id="edit_children_${qrId}" value="${rsvp.children || '0'}" min="0" max="20"
+                style="width: 100%; padding: 8px; border: 1px solid #d0d8e0; border-radius: 4px; font-size: 13px;">
+            </div>
+          </div>
+
+          <div style="background: rgba(0,0,0,0.04); padding: 10px 12px; border-radius: 6px; font-size: 12px; color: #555; margin-bottom: 14px;">
+            ✏️ You can edit all fields above before confirming check-in.
+          </div>
+
+          ${checkedIn ? `
+            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">
+              <strong>Checked in at:</strong> ${new Date(rsvp.checkedInAt).toLocaleString()}
+            </p>
+          ` : ''}
+      `;
+
+      if (!checkedIn) {
+        html += `
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-success" onclick="markCheckedIn('${qrId}')">✓ Confirm & Check In</button>
+            <button class="btn" onclick="saveRsvpChanges('${qrId}')" style="background: #2196f3;">💾 Save Changes Only</button>
+            <button class="btn btn-secondary" onclick="clearQrInput()">Cancel</button>
+          </div>
+        `;
+      } else {
+        html += `
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" onclick="saveRsvpChanges('${qrId}')" style="background: #2196f3;">💾 Save Changes</button>
+            <button class="btn btn-secondary" onclick="undoCheckin('${qrId}')">Undo Check-In</button>
+            <button class="btn btn-secondary" onclick="clearQrInput()">Close</button>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+      result.innerHTML = html;
+    }
+
+    function markCheckedIn(qrId) {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      const rsvp = DB.rsvps.find(r => r.id === qrId && r.eventId === eventId);
+
+      if (!rsvp) return;
+
+      rsvp.name = document.getElementById('edit_name_' + qrId).value;
+      rsvp.phone = document.getElementById('edit_phone_' + qrId).value;
+      rsvp.attend = document.getElementById('edit_attend_' + qrId).value;
+      rsvp.student = document.getElementById('edit_student_' + qrId).value;
+      rsvp.adults = document.getElementById('edit_adults_' + qrId).value;
+      rsvp.children = document.getElementById('edit_children_' + qrId).value;
+      rsvp.checkedInAt = new Date().toISOString();
+
+      DB.save();
+
+      document.getElementById('qrScanInput').value = '';
+      document.getElementById('checkinResult').innerHTML = `
+        <div class="alert alert-success">
+          ✅ ${rsvp.name} checked in! ${rsvp.student === 'yes' ? '<span class="student-badge">🎓 Student</span>' : ''}<br>
+          <small>Adults: ${rsvp.adults || '—'} | Children: ${rsvp.children || '0'}</small>
+        </div>
+      `;
+
+      loadCheckinList(eventId);
+
+      setTimeout(() => {
+        document.getElementById('qrScanInput').focus();
+        document.getElementById('checkinResult').innerHTML = '';
+      }, 3000);
+    }
+
+    function saveRsvpChanges(qrId) {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      const rsvp = DB.rsvps.find(r => r.id === qrId && r.eventId === eventId);
+
+      if (!rsvp) return;
+
+      rsvp.name = document.getElementById('edit_name_' + qrId).value.trim();
+      rsvp.phone = document.getElementById('edit_phone_' + qrId).value.trim();
+      rsvp.attend = document.getElementById('edit_attend_' + qrId).value;
+      rsvp.student = document.getElementById('edit_student_' + qrId).value;
+      rsvp.adults = document.getElementById('edit_adults_' + qrId).value;
+      rsvp.children = document.getElementById('edit_children_' + qrId).value;
+
+      if (!rsvp.name) {
+        alert('Name cannot be empty');
+        return;
+      }
+
+      DB.save();
+      alert('✓ Changes saved!');
+      
+      loadCheckinList(eventId);
+      document.getElementById('qrScanInput').value = '';
+      document.getElementById('checkinResult').innerHTML = '';
+      document.getElementById('qrScanInput').focus();
+    }
+
+    function clearQrInput() {
+      document.getElementById('qrScanInput').value = '';
+      document.getElementById('checkinResult').innerHTML = '';
+      document.getElementById('qrScanInput').focus();
+    }
+
+    function loadCheckinList(eventId) {
+      const eventRsvps = DB.rsvps.filter(r => r.eventId === eventId);
+
+      const html = eventRsvps.map(r => `
+        <tr>
+          <td>${r.name}</td>
+          <td>${r.phone}</td>
+          <td style="text-align:center;">
+            ${r.student === 'yes' ? '<span class="student-badge">🎓 Yes</span>' : '<span style="color:#999;font-size:12px;">No</span>'}
+          </td>
+          <td style="text-align:center;">${r.adults || '—'}</td>
+          <td style="text-align:center;">${r.children || '0'}</td>
+          <td>
+            <span style="background: ${r.checkedInAt ? '#4caf50' : '#999'}; color: white; padding: 4px 8px; border-radius: 3px; font-size: 11px; font-weight: 600;">
+              ${r.checkedInAt ? '✓ Checked In' : 'Pending'}
+            </span>
+          </td>
+          <td>
+            ${!r.checkedInAt ? `
+              <button class="btn btn-small" onclick="quickCheckin('${r.id}')">Check In</button>
+            ` : `
+              <button class="btn btn-small" onclick="undoCheckin('${r.id}')" style="background: #ff9800;">Undo</button>
+            `}
+          </td>
+        </tr>
+      `).join('');
+
+      document.getElementById('checkinList').innerHTML = html || '<tr><td colspan="7" style="text-align: center; color: #999;">No RSVPs for this event</td></tr>';
+    }
+
+    function quickCheckin(rsvpId) {
+      const eventId = document.getElementById('checkinEventSelect').value;
+      const rsvp = DB.rsvps.find(r => r.id === rsvpId);
+      if (!rsvp) return;
+
+      // Populate the QR input and trigger full checkin flow (so admin can review/edit)
+      document.getElementById('qrScanInput').value = rsvpId;
+      searchRsvpForCheckin();
+      window.scrollTo(0, 0);
+    }
+
+    function undoCheckin(qrId) {
+      if (!confirm('Undo check-in for this person?')) return;
+
+      const rsvp = DB.rsvps.find(r => r.id === qrId);
+      if (rsvp) {
+        rsvp.checkedInAt = null;
+        DB.save();
+
+        const eventId = document.getElementById('checkinEventSelect').value;
+        loadCheckinList(eventId);
+      }
+    }
+
+    function filterCheckinList() {
+      const query = document.getElementById('filterCheckin').value.toLowerCase();
+      const rows = document.querySelectorAll('#checkinList tr');
+
+      rows.forEach(row => {
+        const name = row.querySelector('td')?.innerText.toLowerCase() || '';
+        row.style.display = name.includes(query) ? '' : 'none';
+      });
+    }
+
+    // ===== EXPENSE MANAGEMENT =====
+    function loadExpenseEvents() {
+      const select = document.getElementById('expenseEventSelect');
+      const html = DB.events.map(e => `<option value="${e.id}">${e.name} (${e.date})</option>`).join('');
+      select.innerHTML = `<option value="">Choose event...</option>` + html;
+      document.getElementById('expenseContent').classList.add('hidden');
+      document.getElementById('expenseEmptyState').classList.remove('hidden');
+    }
+
+    function loadExpenseData() {
+      const eventId = document.getElementById('expenseEventSelect').value;
+      if (!eventId) {
+        document.getElementById('expenseContent').classList.add('hidden');
+        document.getElementById('expenseEmptyState').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('expenseContent').classList.remove('hidden');
+      document.getElementById('expenseEmptyState').classList.add('hidden');
+      recalcExpenses();
+    }
+
+    function recalcExpenses() {
+      const eventId = document.getElementById('expenseEventSelect').value;
+      if (!eventId) return;
+
+      const totalExpense = parseFloat(document.getElementById('totalExpenseInput').value) || 0;
+      const exclStudents = document.getElementById('excl-students').checked;
+      const exclChildren = document.getElementById('excl-children').checked;
+      const exclNoShow = document.getElementById('excl-noshow').checked;
+      const exclNotCheckedIn = document.getElementById('excl-notcheckedin').checked;
+
+      // Get all RSVPs for this event
+      const rsvps = DB.rsvps.filter(r => r.eventId === eventId);
+
+      // Tally raw counts
+      let totalStudents = 0;
+      let totalChildrenCount = 0;
+      let totalNoShow = 0;
+      let totalNotCheckedIn = 0;
+      let totalHeads = 0;
+
+      // Build per-rsvp breakdown
+      const breakdown = rsvps.map(r => {
+        const isStudent = r.student === 'yes';
+        const isNoShow = r.attend === 'no';
+        const adults = parseInt(r.adults) || (isNoShow ? 0 : 1); // count self if attending
+        const children = parseInt(r.children) || 0;
+        const isCheckedIn = !!r.checkedInAt;
+
+        if (isStudent) totalStudents++;
+        totalChildrenCount += children;
+        if (isNoShow) totalNoShow++;
+        if (!isNoShow && !isCheckedIn) totalNotCheckedIn++;
+
+        // Determine if this RSVP's adults are excluded
+        let excludedReasons = [];
+        if (exclNoShow && isNoShow) excludedReasons.push('No Show');
+        if (exclNotCheckedIn && !isNoShow && !isCheckedIn) excludedReasons.push('Not Checked In');
+        if (exclStudents && isStudent && !excludedReasons.length) excludedReasons.push('Student');
+
+        const primaryExcluded = excludedReasons.length > 0;
+
+        // Adults included
+        let includedAdults = primaryExcluded ? 0 : adults;
+        // Children excluded/included
+        let includedChildren = (exclChildren || primaryExcluded) ? 0 : children;
+
+        const included = includedAdults + includedChildren;
+        totalHeads += (adults + children); // gross total
+
+        return {
+          rsvp: r,
+          isStudent,
+          isNoShow,
+          isCheckedIn,
+          adults,
+          children,
+          includedAdults,
+          includedChildren,
+          included,
+          excludedReasons
+        };
+      });
+
+      const totalIncluded = breakdown.reduce((s, b) => s + b.included, 0);
+      const totalExcluded = totalHeads - totalIncluded;
+      const checkedInCount = rsvps.filter(r => r.checkedInAt).length;
+      const perHead = totalIncluded > 0 ? (totalExpense / totalIncluded) : 0;
+
+      // Update counts labels
+      document.getElementById('excl-students-count').textContent = `${totalStudents} student${totalStudents !== 1 ? 's' : ''} RSVPed attending`;
+      document.getElementById('excl-children-count').textContent = `${totalChildrenCount} child${totalChildrenCount !== 1 ? 'ren' : ''} in RSVPs`;
+      document.getElementById('excl-noshow-count').textContent = `${totalNoShow} people RSVPed "No"`;
+      document.getElementById('excl-notcheckedin-count').textContent = `${totalNotCheckedIn} attendees not yet checked in`;
+
+      // Update badges
+      toggleExclBadge('excl-students', exclStudents);
+      toggleExclBadge('excl-children', exclChildren);
+      toggleExclBadge('excl-noshow', exclNoShow);
+      toggleExclBadge('excl-notcheckedin', exclNotCheckedIn);
+
+      // Update summary numbers
+      document.getElementById('perHeadDisplay').textContent = `$${perHead.toFixed(2)}`;
+      document.getElementById('includedCountDisplay').textContent = totalIncluded;
+      document.getElementById('statTotalRsvp').textContent = rsvps.length;
+      document.getElementById('statIncluded').textContent = totalIncluded;
+      document.getElementById('statExcluded').textContent = totalExcluded;
+      document.getElementById('statStudents').textContent = totalStudents;
+      document.getElementById('statChildren').textContent = totalChildrenCount;
+      document.getElementById('statCheckedIn').textContent = checkedInCount;
+
+      // Update breakdown table
+      const tableHtml = breakdown.map(b => {
+        const r = b.rsvp;
+        const typeLabel = [
+          b.isStudent ? '<span class="student-badge">🎓 Student</span>' : '',
+          b.isNoShow ? '<span style="font-size:11px;background:#f44336;color:white;padding:2px 6px;border-radius:8px;margin-left:4px;">No Show</span>' : ''
+        ].join('');
+        const includedStyle = b.included > 0 ? 'color:#2e7d32;font-weight:700;' : 'color:#bbb;';
+        const exclNote = b.excludedReasons.length ? `<br><span style="font-size:10px;color:#e65100;">(${b.excludedReasons.join(', ')})</span>` : '';
+        return `
+          <tr style="${b.included === 0 ? 'opacity:0.55;' : ''}">
+            <td>${r.name}</td>
+            <td>${typeLabel || '<span style="font-size:12px;color:#999;">Adult</span>'}</td>
+            <td style="text-align:center;">${b.adults}</td>
+            <td style="text-align:center;">${b.children}</td>
+            <td style="text-align:center;">
+              ${b.isCheckedIn ? '<span style="color:#2e7d32;font-weight:700;">✓</span>' : '<span style="color:#bbb;">—</span>'}
+            </td>
+            <td style="text-align:center;${includedStyle}">${b.included}${exclNote}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('expenseBreakdownTable').innerHTML = tableHtml || 
+        '<tr><td colspan="6" style="text-align:center;color:#999;">No RSVPs for this event</td></tr>';
+    }
+
+    function toggleExclBadge(id, isExcluded) {
+      const badge = document.getElementById(id + '-badge');
+      const row = document.getElementById(id + '-row');
+      if (badge) badge.classList.toggle('hidden', !isExcluded);
+      if (row) row.classList.toggle('excluded', isExcluded);
+    }
+  </script>
+</body>
+</html>
